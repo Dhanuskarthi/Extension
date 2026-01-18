@@ -128,6 +128,15 @@ function extractChoicesFromInputs(container: HTMLElement): string[] {
   );
   
   for (const input of inputs) {
+    // Skip hidden, sr-only, or "clear choice" inputs
+    if (input.classList.contains('sr-only') ||
+        input.classList.contains('hidden') ||
+        input.hasAttribute('aria-hidden') ||
+        input.value === '-1' ||
+        input.id.includes('answer-1')) {
+      continue;
+    }
+    
     const label = findInputLabel(input);
     if (label) {
       const text = cleanChoiceText(label.textContent || '');

@@ -121,7 +121,7 @@ export const QUIZ_SELECTORS = {
     '.quiz-question-text',
   ],
 
-  // Choice elements
+  // Choice elements - INDIVIDUAL choice items only (not containers)
   choices: [
     // Study4.com / Bootstrap
     '.form-check',
@@ -132,10 +132,11 @@ export const QUIZ_SELECTORS = {
     '.nWQGrd',
     '.AB7Lab',
     
-    // Moodle
-    '.answer',
+    // Moodle - individual choice rows (NOT .answer which is container!)
     '.r0',
     '.r1',
+    '[data-region="answer-label"]',
+    '.answernumber',
     
     // Generic
     'label',
