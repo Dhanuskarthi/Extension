@@ -1,0 +1,186 @@
+/* QORVA Overlay Styles - Injected into content pages */
+
+#qorva-overlay-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 2147483647;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    pointer-events: none;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.qorva-card {
+    pointer-events: auto;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    min-width: 320px;
+    max-width: 400px;
+    opacity: 0;
+    transform: translateX(20px);
+    transition: all 0.3s ease;
+    color: #fff;
+}
+
+.qorva-card.qorva-visible {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.qorva-card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.qorva-card-icon {
+    font-size: 18px;
+}
+
+.qorva-card-title {
+    flex: 1;
+    font-weight: 600;
+    font-size: 14px;
+    color: #a78bfa;
+}
+
+.qorva-card-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.qorva-card-close,
+.qorva-btn-icon {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 16px;
+    transition: all 0.2s;
+}
+
+.qorva-card-close:hover,
+.qorva-btn-icon:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.qorva-card-content {
+    padding: 16px;
+}
+
+.qorva-loader {
+    width: 24px;
+    height: 24px;
+    border: 2px solid rgba(167, 139, 250, 0.3);
+    border-top-color: #a78bfa;
+    border-radius: 50%;
+    animation: qorva-spin 0.8s linear infinite;
+    margin: 8px auto;
+}
+
+@keyframes qorva-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.qorva-answer-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 13px;
+    margin: 4px 4px 4px 0;
+}
+
+.qorva-explanation {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 13px;
+    line-height: 1.5;
+    margin-top: 12px;
+}
+
+.qorva-error {
+    color: #f87171;
+    text-align: center;
+}
+
+.qorva-success {
+    color: #fff;
+}
+
+.qorva-btn {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    border: none;
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    margin-top: 12px;
+    transition: transform 0.2s;
+}
+
+.qorva-btn:hover {
+    transform: scale(1.05);
+}
+
+.qorva-btn-retry {
+    margin-top: 12px;
+}
+
+.qorva-transcript-text {
+    font-style: italic;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 13px;
+    margin-bottom: 12px;
+}
+
+.qorva-answer-text {
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+.qorva-listening {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #4ade80;
+}
+
+.qorva-toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #1a1a2e;
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    opacity: 0;
+    transition: all 0.3s ease;
+    pointer-events: auto;
+    z-index: 2147483647;
+}
+
+.qorva-toast.qorva-visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* Selected answer highlight */
+[data-qorva-selected="true"] {
+    outline: 2px solid #4CAF50 !important;
+    outline-offset: 2px !important;
+}

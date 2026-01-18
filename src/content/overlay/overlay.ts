@@ -1,0 +1,470 @@
+/**
+ * QORVA - Overlay Manager
+ * Manages non-invasive UI overlays with error rate limiting
+ */
+
+import type { QuizCardData, AudioCardData } from '../../shared/types';
+
+// Error tracking for rate limiting
+interface ErrorState {
+  lastError: string;
+  count: number;
+  lastTime: number;
+}
+
+class OverlayManager {
+  private container: HTMLElement | null = null;
+  private quizCards: Map<string, HTMLElement> = new Map();
+  private audioCard: HTMLElement | null = null;
+  private errorState: ErrorState = { lastError: '', count: 0, lastTime: 0 };
+  private maxErrorsShown = 1;
+  private errorDismissTimeout = 5000;
+
+  /**
+   * Initialize overlay container
+   */
+  init(): void {
+    if (this.container) return;
+    
+    this.container = document.createElement('div');
+    this.container.id = 'qorva-overlay-container';
+    this.container.setAttribute('aria-live', 'polite');
+    
+    this.injectStyles();
+    document.body.appendChild(this.container);
+    console.log('[QORVA] Overlay manager initialized');
+  }
+
+  /**
+   * Show quiz answer card
+   */
+  showQuizCard(id: string, data: QuizCardData): void {
+    this.init();
+    
+    // Rate limit error modals
+    if (data.status === 'error' && !this.shouldShowError(data.errorMessage || '')) {
+      return;
+    }
+    
+    let card = this.quizCards.get(id);
+    
+    if (!card) {
+      card = this.createQuizCard(id);
+      this.quizCards.set(id, card);
+      this.container!.appendChild(card);
+    }
+    
+    this.updateQuizCard(card, data);
+    
+    // Auto-dismiss error cards
+    if (data.status === 'error') {
+      setTimeout(() => this.removeQuizCard(id), this.errorDismissTimeout);
+    }
+  }
+
+  /**
+   * Check if error should be shown (rate limiting)
+   */
+  private shouldShowError(error: string): boolean {
+    const now = Date.now();
+    const isApiError = error.toLowerCase().includes('api') || 
+                       error.toLowerCase().includes('key') ||
+                       error.toLowerCase().includes('model');
+    
+    if (isApiError) {
+      if (this.errorState.lastError === error && now - this.errorState.lastTime < 30000) {
+        this.errorState.count++;
+        if (this.errorState.count > this.maxErrorsShown) {
+          return false;
+        }
+      } else {
+        this.errorState = { lastError: error, count: 1, lastTime: now };
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Remove quiz card
+   */
+  removeQuizCard(id: string): void {
+    const card = this.quizCards.get(id);
+    if (card) {
+      card.classList.remove('qorva-visible');
+      setTimeout(() => {
+        card.remove();
+        this.quizCards.delete(id);
+      }, 300);
+    }
+  }
+
+  /**
+   * Show audio QA card
+   */
+  showAudioCard(data: AudioCardData): void {
+    this.init();
+    
+    if (!this.audioCard) {
+      this.audioCard = this.createAudioCard();
+      this.container!.appendChild(this.audioCard);
+    }
+    
+    this.updateAudioCard(data);
+  }
+
+  /**
+   * Hide audio card
+   */
+  hideAudioCard(): void {
+    if (this.audioCard) {
+      this.audioCard.classList.remove('qorva-visible');
+    }
+  }
+
+  /**
+   * Create quiz card element (compact design)
+   */
+  private createQuizCard(id: string): HTMLElement {
+    const card = document.createElement('div');
+    card.className = 'qorva-card qorva-quiz-card';
+    card.setAttribute('data-card-id', id);
+    
+    card.innerHTML = `
+      <div class="qorva-card-header">
+        <span class="qorva-icon">⚡</span>
+        <span class="qorva-title">QORVA</span>
+        <button class="qorva-close" aria-label="Close">✕</button>
+      </div>
+      <div class="qorva-body">
+        <div class="qorva-loader"></div>
+      </div>
+    `;
+    
+    card.querySelector('.qorva-close')?.addEventListener('click', () => {
+      this.removeQuizCard(id);
+    });
+    
+    return card;
+  }
+
+  /**
+   * Update quiz card content
+   */
+  private updateQuizCard(card: HTMLElement, data: QuizCardData): void {
+    const body = card.querySelector('.qorva-body');
+    if (!body) return;
+    
+    if (data.status === 'loading') {
+      body.innerHTML = `<div class="qorva-loader"></div>`;
+    } else if (data.status === 'error') {
+      const shortError = this.truncateError(data.errorMessage || 'Error');
+      body.innerHTML = `<div class="qorva-error-msg">❌ ${shortError}</div>`;
+    } else if (data.status === 'success' && data.answer) {
+      // Validate answer index
+      const indices = Array.isArray(data.answer.answer_index) 
+        ? data.answer.answer_index 
+        : [data.answer.answer_index];
+      
+      const validIndices = indices.filter(i => i >= 0 && i < data.question.choices.length);
+      
+      if (validIndices.length === 0) {
+        body.innerHTML = `<div class="qorva-error-msg">⚠️ Invalid answer index</div>`;
+        return;
+      }
+      
+      const answers = validIndices.map(i => {
+        const letter = String.fromCharCode(65 + i);
+        const choice = data.question.choices[i]?.substring(0, 50) || '';
+        return `<span class="qorva-badge">${letter}. ${choice}</span>`;
+      }).join('');
+      
+      body.innerHTML = `<div class="qorva-answers">${answers}</div>`;
+    }
+    
+    card.classList.add('qorva-visible');
+  }
+
+  /**
+   * Truncate error message for compact display
+   */
+  private truncateError(error: string): string {
+    if (error.length > 60) {
+      return error.substring(0, 57) + '...';
+    }
+    return error;
+  }
+
+  /**
+   * Create audio card element
+   */
+  private createAudioCard(): HTMLElement {
+    const card = document.createElement('div');
+    card.className = 'qorva-card qorva-audio-card';
+    
+    card.innerHTML = `
+      <div class="qorva-card-header">
+        <span class="qorva-icon">🎤</span>
+        <span class="qorva-title">Audio QA</span>
+        <button class="qorva-close" aria-label="Close">✕</button>
+      </div>
+      <div class="qorva-body">
+        <div class="qorva-transcript"></div>
+        <div class="qorva-answer-section"></div>
+      </div>
+    `;
+    
+    card.querySelector('.qorva-close')?.addEventListener('click', () => {
+      this.hideAudioCard();
+    });
+    
+    return card;
+  }
+
+  /**
+   * Update audio card content
+   */
+  private updateAudioCard(data: AudioCardData): void {
+    if (!this.audioCard) return;
+    
+    const transcript = this.audioCard.querySelector('.qorva-transcript');
+    const answerSection = this.audioCard.querySelector('.qorva-answer-section');
+    
+    if (transcript) {
+      transcript.innerHTML = data.transcript 
+        ? `<p class="qorva-transcript-text">"${data.transcript}"</p>`
+        : '';
+    }
+    
+    if (answerSection) {
+      switch (data.status) {
+        case 'listening':
+          answerSection.innerHTML = `<span class="qorva-status">🎙️ Listening...</span>`;
+          break;
+        case 'processing':
+          answerSection.innerHTML = `<div class="qorva-loader"></div>`;
+          break;
+        case 'ready':
+          if (data.answer) {
+            answerSection.innerHTML = `<div class="qorva-answer-text">${data.answer.answer}</div>`;
+          }
+          break;
+        case 'error':
+          answerSection.innerHTML = `<div class="qorva-error-msg">❌ ${data.errorMessage}</div>`;
+          setTimeout(() => this.hideAudioCard(), this.errorDismissTimeout);
+          break;
+      }
+    }
+    
+    this.audioCard.classList.add('qorva-visible');
+  }
+
+  /**
+   * Show toast notification
+   */
+  showToast(message: string, duration = 2000): void {
+    this.init();
+    
+    // Remove existing toasts
+    this.container?.querySelectorAll('.qorva-toast').forEach(t => t.remove());
+    
+    const toast = document.createElement('div');
+    toast.className = 'qorva-toast';
+    toast.textContent = message;
+    
+    this.container!.appendChild(toast);
+    
+    requestAnimationFrame(() => {
+      toast.classList.add('qorva-visible');
+    });
+    
+    setTimeout(() => {
+      toast.classList.remove('qorva-visible');
+      setTimeout(() => toast.remove(), 300);
+    }, duration);
+  }
+
+  /**
+   * Inject overlay styles (compact, modern design)
+   */
+  private injectStyles(): void {
+    if (document.getElementById('qorva-styles')) return;
+    
+    const style = document.createElement('style');
+    style.id = 'qorva-styles';
+    style.textContent = `
+      #qorva-overlay-container {
+        position: fixed;
+        top: 12px;
+        right: 12px;
+        z-index: 2147483647;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        pointer-events: none;
+        font-family: system-ui, -apple-system, sans-serif;
+        font-size: 13px;
+      }
+      
+      .qorva-card {
+        pointer-events: auto;
+        background: rgba(15, 15, 25, 0.95);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 10px;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+        min-width: 200px;
+        max-width: 280px;
+        opacity: 0;
+        transform: translateX(12px) scale(0.95);
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        color: #fff;
+        overflow: hidden;
+      }
+      
+      .qorva-card.qorva-visible {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+      }
+      
+      .qorva-card-header {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 10px;
+        background: rgba(255, 255, 255, 0.03);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      }
+      
+      .qorva-icon { font-size: 14px; }
+      
+      .qorva-title {
+        flex: 1;
+        font-weight: 600;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #a78bfa;
+      }
+      
+      .qorva-close {
+        background: none;
+        border: none;
+        color: rgba(255, 255, 255, 0.4);
+        cursor: pointer;
+        padding: 2px 6px;
+        font-size: 12px;
+        border-radius: 4px;
+        transition: all 0.15s;
+      }
+      
+      .qorva-close:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+      }
+      
+      .qorva-body {
+        padding: 10px;
+        min-height: 24px;
+      }
+      
+      .qorva-loader {
+        width: 18px;
+        height: 18px;
+        border: 2px solid rgba(167, 139, 250, 0.2);
+        border-top-color: #a78bfa;
+        border-radius: 50%;
+        animation: qorva-spin 0.7s linear infinite;
+        margin: 4px auto;
+      }
+      
+      @keyframes qorva-spin {
+        to { transform: rotate(360deg); }
+      }
+      
+      .qorva-answers {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      
+      .qorva-badge {
+        display: block;
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        padding: 6px 10px;
+        border-radius: 6px;
+        font-weight: 500;
+        font-size: 12px;
+        line-height: 1.3;
+      }
+      
+      .qorva-error-msg {
+        color: #f87171;
+        font-size: 12px;
+        text-align: center;
+        padding: 4px;
+      }
+      
+      .qorva-status {
+        color: #4ade80;
+        font-size: 12px;
+      }
+      
+      .qorva-transcript-text {
+        font-style: italic;
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 11px;
+        margin-bottom: 8px;
+      }
+      
+      .qorva-answer-text {
+        font-size: 13px;
+        line-height: 1.5;
+      }
+      
+      .qorva-toast {
+        position: fixed;
+        bottom: 16px;
+        left: 50%;
+        transform: translateX(-50%) translateY(8px);
+        background: rgba(15, 15, 25, 0.95);
+        backdrop-filter: blur(12px);
+        color: #fff;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 12px;
+        opacity: 0;
+        transition: all 0.2s ease;
+        pointer-events: auto;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      
+      .qorva-toast.qorva-visible {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+    `;
+    
+    document.head.appendChild(style);
+  }
+
+  /**
+   * Cleanup
+   */
+  destroy(): void {
+    this.container?.remove();
+    this.container = null;
+    this.quizCards.clear();
+    this.audioCard = null;
+    document.getElementById('qorva-styles')?.remove();
+  }
+
+  /**
+   * Reset error state
+   */
+  resetErrorState(): void {
+    this.errorState = { lastError: '', count: 0, lastTime: 0 };
+  }
+}
+
+// Export singleton instance
+export const overlayManager = new OverlayManager();
