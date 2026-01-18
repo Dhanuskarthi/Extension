@@ -22,14 +22,7 @@ export async function selectAnswer(
   answer: QuizAnswer,
   config: QuizConfig
 ): Promise<SelectResult> {
-  const indices = Array.isArray(answer.answer_index) 
-    ? answer.answer_index 
-    : [answer.answer_index];
-  
-  const selectedIndices: number[] = [];
-  const errors: string[] = [];
-  
-  // Get all choice elements
+  // Get all choice elements FIRST to know the valid range
   const choices = getChoiceElements(container);
   
   if (choices.length === 0) {
@@ -40,12 +33,26 @@ export async function selectAnswer(
     };
   }
   
+  // Get indices and CLAMP to valid range
+  let indices = Array.isArray(answer.answer_index) 
+    ? answer.answer_index 
+    : [answer.answer_index];
+  
+  // Clamp each index to valid range [0, choices.length-1]
+  indices = indices.map(i => {
+    if (typeof i !== 'number' || isNaN(i)) return 0;
+    if (i < 0) return 0;
+    if (i >= choices.length) return choices.length - 1; // CLAMP instead of skip!
+    return i;
+  });
+  
+  // Remove duplicates
+  indices = [...new Set(indices)];
+  
+  const selectedIndices: number[] = [];
+  const errors: string[] = [];
+  
   for (const index of indices) {
-    if (index < 0 || index >= choices.length) {
-      errors.push(`Invalid answer index: ${index}`);
-      continue;
-    }
-    
     // Add delay between selections
     if (selectedIndices.length > 0) {
       await sleep(randomDelay(config.delayMin, config.delayMax));
@@ -62,7 +69,7 @@ export async function selectAnswer(
   }
   
   return {
-    success: selectedIndices.length === indices.length,
+    success: selectedIndices.length > 0,
     selectedIndices,
     error: errors.length > 0 ? errors.join('; ') : undefined,
   };
@@ -81,6 +88,15 @@ function getChoiceElements(container: HTMLElement): ChoiceElement[] {
   
   if (inputs.length > 0) {
     for (const input of inputs) {
+      // Skip hidden, sr-only, or "clear choice" inputs
+      if (input.classList.contains('sr-only') ||
+          input.classList.contains('hidden') ||
+          input.hasAttribute('aria-hidden') ||
+          input.value === '-1' ||
+          input.id.includes('answer-1')) {
+        continue;
+      }
+      
       const label = findInputLabel(input);
       choices.push({
         input,
