@@ -87,9 +87,19 @@ class QuizDetector {
     let hasNewQuestions = false;
     
     for (const mutation of mutations) {
+      // SKIP mutations in overlay container (prevents infinite loop)
+      const target = mutation.target as HTMLElement;
+      if (target.closest('#qorva-overlay-container') || 
+          target.id === 'qorva-overlay-container') {
+        continue;
+      }
+      
       // Check added nodes
       for (const node of mutation.addedNodes) {
         if (node instanceof HTMLElement) {
+          // Skip overlay nodes
+          if (node.closest('#qorva-overlay-container')) continue;
+          
           const questions = this.scanElement(node);
           if (questions.length > 0) {
             hasNewQuestions = true;
