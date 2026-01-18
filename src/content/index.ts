@@ -109,13 +109,17 @@ class QorvaContentScript {
    * Handle detected questions
    */
   private async handleQuestionsDetected(questions: DetectedQuestion[]): Promise<void> {
-    for (const { id, element, question } of questions) {
-      // Skip if already processed
-      if (this.processedQuestions.has(id)) continue;
-      
-      // Mark as processing
+    // Filter out already processed questions FIRST synchronously
+    const newQuestions = questions.filter(({ id }) => !this.processedQuestions.has(id));
+    
+    // Mark ALL as processed IMMEDIATELY to prevent race conditions
+    for (const { id } of newQuestions) {
       this.processedQuestions.add(id);
-      
+    }
+    
+    console.log(`[QORVA] Processing ${newQuestions.length} new questions`);
+    
+    for (const { id, element, question } of newQuestions) {
       // Show loading overlay
       overlayManager.showQuizCard(id, {
         question,
