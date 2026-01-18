@@ -221,6 +221,14 @@ class QuizDetector {
       return null;
     }
     
+    // Check if already has qorva ID (scanned before via different path)
+    const existingId = element.getAttribute('data-qorva-id');
+    if (existingId && this.detectedQuestions.has(existingId)) {
+      // Already detected, skip
+      this.processedElements.add(element);
+      return null;
+    }
+    
     // Try to parse the question
     const question = parseQuestion(element);
     
@@ -231,15 +239,14 @@ class QuizDetector {
     // Mark as processed
     this.processedElements.add(element);
     
-    // Generate or get ID
-    const id = element.getAttribute('data-question-id') || 
+    // Generate stable ID - prioritize existing markers
+    const id = existingId ||
+               element.getAttribute('data-question-id') || 
                element.id || 
                generateId('q');
     
-    // Store element ID for later reference
-    if (!element.hasAttribute('data-qorva-id')) {
-      element.setAttribute('data-qorva-id', id);
-    }
+    // Mark element with stable ID immediately
+    element.setAttribute('data-qorva-id', id);
     
     const detected: DetectedQuestion = {
       id,
