@@ -1,0 +1,69 @@
+{
+  "manifest_version": 3,
+  "name": "QORVA",
+  "description": "Quiz Automation & Audio Realtime QA Extension",
+  "version": "1.0.0",
+  "icons": {
+    "16": "public/icons/icon-16.png",
+    "48": "public/icons/icon-48.png",
+    "128": "public/icons/icon-128.png"
+  },
+
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting",
+    "offscreen",
+    "tabCapture",
+    "clipboardWrite"
+  ],
+
+  "optional_permissions": [
+    "tabs",
+    "notifications"
+  ],
+
+  "host_permissions": [
+    "https://generativelanguage.googleapis.com/*",
+    "https://api.openai.com/*",
+    "https://api.anthropic.com/*",
+    "<all_urls>"
+  ],
+
+  "background": {
+    "service_worker": "src/background/index.ts",
+    "type": "module"
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/content/index.ts"],
+      "css": ["src/styles/overlay.css"],
+      "run_at": "document_idle"
+    }
+  ],
+
+  "action": {
+    "default_popup": "src/popup/index.html",
+    "default_icon": {
+      "16": "public/icons/icon-16.png",
+      "48": "public/icons/icon-48.png",
+      "128": "public/icons/icon-128.png"
+    }
+  },
+
+  "options_ui": {
+    "page": "src/options/index.html",
+    "open_in_tab": true
+  },
+
+  "commands": {
+    "push-to-talk": {
+      "suggested_key": {
+        "default": "Alt+Space"
+      },
+      "description": "Push-to-Talk for Audio QA"
+    }
+  }
+}

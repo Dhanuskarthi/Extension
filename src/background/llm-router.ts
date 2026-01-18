@@ -1,0 +1,330 @@
+/**
+ * QORVA - LLM Router
+ * Multi-provider support: Gemini, OpenAI, Claude
+ */
+
+import type {
+  QuizQuestion,
+  QuizAnswer,
+  AudioQAResponse,
+  LLMResponse,
+} from '../shared/types';
+import { LLM_ENDPOINTS, PROMPTS, RATE_LIMIT } from '../shared/constants';
+import { extractJSON, formatError } from '../shared/utils';
+import { configManager } from './config-manager';
+
+// Request queue for rate limiting
+interface QueuedRequest {
+  execute: () => Promise<unknown>;
+  resolve: (value: unknown) => void;
+  reject: (error: Error) => void;
+}
+
+class LLMRouter {
+  private activeRequests = 0;
+  private requestQueue: QueuedRequest[] = [];
+  private retryCount = 0;
+
+  /**
+   * Answer a quiz question
+   */
+  async answerQuiz(question: QuizQuestion): Promise<LLMResponse<QuizAnswer>> {
+    const prompt = this.buildQuizPrompt(question);
+    
+    try {
+      const response = await this.executeWithRateLimit(() => 
+        this.callLLM(prompt)
+      );
+      
+      const answer = extractJSON<QuizAnswer>(response);
+      
+      if (!answer) {
+        // Retry once if JSON parsing fails
+        if (this.retryCount < RATE_LIMIT.maxRetries) {
+          this.retryCount++;
+          return this.answerQuiz(question);
+        }
+        
+        return {
+          success: false,
+          error: 'Failed to parse LLM response',
+          retryable: true,
+        };
+      }
+      
+      this.retryCount = 0;
+      return { success: true, data: answer };
+    } catch (error) {
+      return {
+        success: false,
+        error: formatError(error),
+        retryable: this.isRetryableError(error),
+      };
+    }
+  }
+
+  /**
+   * Answer an audio question
+   */
+  async answerAudio(transcript: string): Promise<LLMResponse<AudioQAResponse>> {
+    const prompt = PROMPTS.audio.replace('{{transcript}}', transcript);
+    
+    try {
+      const response = await this.executeWithRateLimit(() => 
+        this.callLLM(prompt)
+      );
+      
+      const answer = extractJSON<AudioQAResponse>(response);
+      
+      if (!answer) {
+        return {
+          success: false,
+          error: 'Failed to parse LLM response',
+          retryable: true,
+        };
+      }
+      
+      return { success: true, data: answer };
+    } catch (error) {
+      return {
+        success: false,
+        error: formatError(error),
+        retryable: this.isRetryableError(error),
+      };
+    }
+  }
+
+  /**
+   * Build quiz prompt from question
+   */
+  private buildQuizPrompt(question: QuizQuestion): string {
+    const choicesStr = question.choices
+      .map((choice, i) => `(${i}) ${choice}`)
+      .join('\n');
+    
+    return PROMPTS.quiz
+      .replace('{{question_text}}', question.text)
+      .replace('{{choices}}', choicesStr);
+  }
+
+  /**
+   * Execute request with rate limiting
+   */
+  private async executeWithRateLimit<T>(
+    execute: () => Promise<T>
+  ): Promise<T> {
+    return new Promise((resolve, reject) => {
+      const request: QueuedRequest = {
+        execute: execute as () => Promise<unknown>,
+        resolve: resolve as (value: unknown) => void,
+        reject,
+      };
+      
+      if (this.activeRequests < RATE_LIMIT.maxConcurrent) {
+        this.processRequest(request);
+      } else {
+        this.requestQueue.push(request);
+      }
+    });
+  }
+
+  /**
+   * Process a request
+   */
+  private async processRequest(request: QueuedRequest): Promise<void> {
+    this.activeRequests++;
+    
+    try {
+      const result = await request.execute();
+      request.resolve(result);
+    } catch (error) {
+      request.reject(error as Error);
+    } finally {
+      this.activeRequests--;
+      this.processNextInQueue();
+    }
+  }
+
+  /**
+   * Process next request in queue
+   */
+  private processNextInQueue(): void {
+    if (this.requestQueue.length > 0 && this.activeRequests < RATE_LIMIT.maxConcurrent) {
+      const next = this.requestQueue.shift();
+      if (next) {
+        this.processRequest(next);
+      }
+    }
+  }
+
+  /**
+   * Call LLM API based on configured provider
+   */
+  private async callLLM(prompt: string): Promise<string> {
+    const config = await configManager.get();
+    const provider = config.llm.provider;
+    const providerConfig = config.llm[provider];
+    
+    if (!providerConfig?.apiKey) {
+      throw new Error(`API key not configured for ${provider}`);
+    }
+    
+    switch (provider) {
+      case 'gemini':
+        return this.callGemini(prompt, providerConfig.apiKey, providerConfig.model);
+      case 'openai':
+        return this.callOpenAI(
+          prompt,
+          providerConfig.apiKey,
+          providerConfig.model,
+          providerConfig.baseURL
+        );
+      case 'claude':
+        return this.callClaude(prompt, providerConfig.apiKey, providerConfig.model);
+      default:
+        throw new Error(`Unsupported provider: ${provider}`);
+    }
+  }
+
+  /**
+   * Call Gemini API
+   */
+  private async callGemini(
+    prompt: string,
+    apiKey: string,
+    model: string
+  ): Promise<string> {
+    const url = `${LLM_ENDPOINTS.gemini}/${model}:generateContent?key=${apiKey}`;
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [{ text: prompt }],
+          },
+        ],
+        generationConfig: {
+          temperature: 0.3,
+          maxOutputTokens: 1024,
+        },
+      }),
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error?.message || `Gemini API error: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  }
+
+  /**
+   * Call OpenAI API
+   */
+  private async callOpenAI(
+    prompt: string,
+    apiKey: string,
+    model: string,
+    baseURL?: string
+  ): Promise<string> {
+    const url = baseURL || LLM_ENDPOINTS.openai;
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model,
+        messages: [
+          {
+            role: 'user',
+            content: prompt,
+          },
+        ],
+        temperature: 0.3,
+        max_tokens: 1024,
+      }),
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error?.message || `OpenAI API error: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return data.choices?.[0]?.message?.content || '';
+  }
+
+  /**
+   * Call Claude API
+   */
+  private async callClaude(
+    prompt: string,
+    apiKey: string,
+    model: string
+  ): Promise<string> {
+    const response = await fetch(LLM_ENDPOINTS.claude, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model,
+        max_tokens: 1024,
+        messages: [
+          {
+            role: 'user',
+            content: prompt,
+          },
+        ],
+      }),
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error?.message || `Claude API error: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return data.content?.[0]?.text || '';
+  }
+
+  /**
+   * Check if error is retryable
+   */
+  private isRetryableError(error: unknown): boolean {
+    if (error instanceof Error) {
+      const message = error.message.toLowerCase();
+      return (
+        message.includes('rate limit') ||
+        message.includes('timeout') ||
+        message.includes('network') ||
+        message.includes('503') ||
+        message.includes('529')
+      );
+    }
+    return false;
+  }
+
+  /**
+   * Get current queue status
+   */
+  getStatus(): { active: number; queued: number } {
+    return {
+      active: this.activeRequests,
+      queued: this.requestQueue.length,
+    };
+  }
+}
+
+// Export singleton instance
+export const llmRouter = new LLMRouter();

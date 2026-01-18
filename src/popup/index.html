@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QORVA</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup">
+    <header>
+      <div class="logo">
+        <span class="logo-icon">⚡</span>
+        <span class="logo-text">QORVA</span>
+      </div>
+      <button id="settings-btn" class="icon-btn" title="Settings">⚙️</button>
+    </header>
+
+    <main>
+      <!-- Status Card -->
+      <div class="status-card">
+        <div class="status-item">
+          <span class="status-icon" id="llm-status">🔴</span>
+          <div class="status-info">
+            <span class="status-label">LLM Provider</span>
+            <span class="status-value" id="provider-name">Not configured</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Toggles -->
+      <div class="toggles">
+        <div class="toggle-item">
+          <label class="toggle-label">
+            <input type="checkbox" id="quiz-toggle">
+            <span class="toggle-switch"></span>
+            <span class="toggle-text">Quiz Automation</span>
+          </label>
+          <span class="toggle-status" id="quiz-status">OFF</span>
+        </div>
+        
+        <div class="toggle-item">
+          <label class="toggle-label">
+            <input type="checkbox" id="audio-toggle">
+            <span class="toggle-switch"></span>
+            <span class="toggle-text">Audio QA</span>
+          </label>
+          <span class="toggle-status" id="audio-status">OFF</span>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats">
+        <div class="stat-item">
+          <span class="stat-value" id="questions-answered">0</span>
+          <span class="stat-label">Questions</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value" id="audio-qa-count">0</span>
+          <span class="stat-label">Audio QA</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value" id="cache-size">0</span>
+          <span class="stat-label">Cached</span>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <button id="rescan-btn" class="btn btn-secondary">🔄 Rescan</button>
+      <button id="options-btn" class="btn btn-primary">⚙️ Options</button>
+    </footer>
+  </div>
+
+  <script type="module" src="popup.ts"></script>
+</body>
+</html>
