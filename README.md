@@ -1,27 +1,15 @@
-<p align="center">
-  <img src="public/icons/icon-128.png" width="80" alt="QORVA Logo">
-</p>
+# ⚡ QORVA Extension
 
-<h1 align="center">⚡ QORVA</h1>
+**[English](README.md) | [Tiếng Việt](README.vi.md)**
 
-<p align="center">
-  <strong>Quiz Automation & Realtime Voice QA</strong><br>
-  <em>AI-powered Chrome extension for instant quiz answers and voice-based Q&A</em>
-</p>
-
-<p align="center">
-  <img src="https://img.shields.io/badge/manifest-v3-blue?style=flat-square" alt="Manifest V3">
-  <img src="https://img.shields.io/badge/typescript-5.0-blue?style=flat-square&logo=typescript" alt="TypeScript">
-  <img src="https://img.shields.io/badge/vite-5.4-646CFF?style=flat-square&logo=vite" alt="Vite">
-  <img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="MIT License">
-</p>
+AI-powered Chrome extension for **instant quiz answers** and **voice-based Q&A**. Supports Moodle, Google Forms, Canvas, and more.
 
 ---
 
 ## ✨ Features
 
 ### 🎯 Quiz Automation
-- **Auto-detect** quiz questions on any website
+- **Auto-detect** questions on any quiz platform
 - **Multi-platform** support: Moodle, Canvas LMS, Google Forms, Study4, Blackboard
 - **Intelligent answer selection** with human-like delays
 - **Next page navigation** auto-detection
