@@ -224,7 +224,20 @@ class QuizDetector {
     // Check if already has qorva ID (scanned before via different path)
     const existingId = element.getAttribute('data-qorva-id');
     if (existingId && this.detectedQuestions.has(existingId)) {
-      // Already detected, skip
+      this.processedElements.add(element);
+      return null;
+    }
+    
+    // Check if this element is INSIDE an already-detected question
+    const parentQuestion = element.closest('[data-qorva-id]');
+    if (parentQuestion && parentQuestion !== element) {
+      this.processedElements.add(element);
+      return null;
+    }
+    
+    // Check if this element CONTAINS an already-detected question
+    const childQuestion = element.querySelector('[data-qorva-id]');
+    if (childQuestion) {
       this.processedElements.add(element);
       return null;
     }
