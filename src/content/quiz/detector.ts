@@ -20,6 +20,7 @@ class QuizDetector {
   private observer: MutationObserver | null = null;
   private detectedQuestions: Map<string, DetectedQuestion> = new Map();
   private processedElements: WeakSet<Element> = new WeakSet();
+  private reportedQuestions: Set<string> = new Set(); // Track reported to avoid duplicates
   private callback: QuestionCallback | null = null;
   private isActive = false;
 
@@ -106,7 +107,12 @@ class QuizDetector {
     }
     
     if (hasNewQuestions && this.callback) {
-      this.callback(this.getQuestions());
+      // Only pass questions that haven't been reported yet
+      const newQuestions = this.getQuestions().filter(q => !this.reportedQuestions.has(q.id));
+      if (newQuestions.length > 0) {
+        newQuestions.forEach(q => this.reportedQuestions.add(q.id));
+        this.callback(newQuestions);
+      }
     }
   }
 
@@ -132,7 +138,12 @@ class QuizDetector {
     }
     
     if (foundNew && this.callback) {
-      this.callback(this.getQuestions());
+      // Only pass questions that haven't been reported yet
+      const newQuestions = this.getQuestions().filter(q => !this.reportedQuestions.has(q.id));
+      if (newQuestions.length > 0) {
+        newQuestions.forEach(q => this.reportedQuestions.add(q.id));
+        this.callback(newQuestions);
+      }
     }
   }
 
