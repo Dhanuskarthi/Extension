@@ -1,0 +1,249 @@
+/**
+ * QORVA - Constants and Default Values
+ */
+
+import type { Config } from './types';
+
+// ============ Message Types ============
+
+export const MSG_TYPES = {
+  LLM_ANSWER_QUIZ: 'LLM_ANSWER_QUIZ',
+  LLM_ANSWER_AUDIO: 'LLM_ANSWER_AUDIO',
+  CFG_GET: 'CFG_GET',
+  CFG_SET: 'CFG_SET',
+  STATUS_GET: 'STATUS_GET',
+  OFFSCREEN_AUDIO_CAPTURE: 'OFFSCREEN_AUDIO_CAPTURE',
+} as const;
+
+// ============ Default Configuration ============
+
+export const DEFAULT_CONFIG: Config = {
+  llm: {
+    provider: 'gemini',
+    gemini: {
+      apiKey: '',
+      model: 'gemini-2.5-flash',
+    },
+    openai: {
+      apiKey: '',
+      model: 'gpt-4o-mini',
+      baseURL: 'https://api.openai.com/v1',
+    },
+    claude: {
+      apiKey: '',
+      model: 'claude-3-haiku-20240307',
+    },
+  },
+  quiz: {
+    auto: true,
+    autoSubmit: false,
+    delayMin: 50,
+    delayMax: 200,
+  },
+  audio: {
+    enabled: false,
+    source: 'system',
+    tts: true,
+    ttsVoice: 'Female-Primary',
+    volume: 0.5,
+    pushToTalk: 'Alt+Space',
+    autoCopy: false,
+    autoSend: false,
+  },
+  cache: {
+    enabled: true,
+    ttlHours: 24,
+  },
+  blacklistDomains: [],
+};
+
+// ============ DOM Selectors ============
+
+export const QUIZ_SELECTORS = {
+  // Question containers - ordered by specificity
+  containers: [
+    // Study4.com (TOEIC/IELTS)
+    '.question-wrapper',
+    '[data-qid]',
+    
+    // Google Forms
+    '[data-item-id]',
+    '.freebirdFormviewerViewItemsItemItem',
+    '.Qr7Oae',
+    
+    // Moodle LMS
+    '.que',
+    '.qtext',
+    '.formulation',
+    
+    // Canvas LMS
+    '.question',
+    '.question_holder',
+    '.display_question',
+    
+    // Blackboard
+    '.vtbegenerated',
+    '.questionContent',
+    
+    // Generic patterns
+    '[data-question]',
+    '.quiz-item',
+    '.mcq',
+    '.question-card',
+    '.quiz-question',
+    '.test-question',
+    '[role="group"]',
+    'fieldset',
+  ],
+
+  // Question text
+  questionText: [
+    // Study4.com
+    '.question-text',
+    '.question-number',
+    
+    // Google Forms
+    '.M7eMe',
+    '.freebirdFormviewerComponentsQuestionBaseTitle',
+    
+    // Moodle
+    '.qtext',
+    
+    // Generic
+    '.prompt',
+    '.title',
+    'legend',
+    'h2',
+    'h3',
+    'h4',
+    '[role="heading"]',
+    '.question-title',
+    '.quiz-question-text',
+  ],
+
+  // Choice elements
+  choices: [
+    // Study4.com / Bootstrap
+    '.form-check',
+    '.form-check-label',
+    
+    // Google Forms
+    '.docssharedWizToggleLabeledContainer',
+    '.nWQGrd',
+    '.AB7Lab',
+    
+    // Moodle
+    '.answer',
+    '.r0',
+    '.r1',
+    
+    // Generic
+    'label',
+    '.choice',
+    '.option',
+    '.answer-option',
+    '.quiz-option',
+    '[role="radio"]',
+    '[role="checkbox"]',
+    '[role="option"]',
+    'li',
+  ],
+
+  // Submit buttons
+  submit: [
+    'button[type="submit"]',
+    'input[type="submit"]',
+    '[role="button"]',
+    '.submit',
+    '.finish',
+    '.turn-in',
+    '.nộp',
+    '.hoàn-thành',
+    '.btn-submit',
+    '.submit-btn',
+    '.check-answer',
+    '.submit-answer',
+    // Google Forms
+    '.freebirdFormviewerViewNavigationSubmitButton',
+  ],
+  
+  // Next page / navigation buttons (NOT submit)
+  nextPage: [
+    // Moodle
+    '#mod_quiz-next-nav',
+    '.mod_quiz-next-nav',
+    '[name="next"]',
+    'input[value="Next page"]',
+    'input[value="Trang tiếp"]',
+    // Generic
+    '.next-btn',
+    '.next-page',
+    '.btn-next',
+    'button:contains("Next")',
+    'button:contains("Tiếp")',
+    '[aria-label*="next"]',
+    '[aria-label*="Next"]',
+    // Study4
+    '.next-question',
+    '.btn-navigation-next',
+  ],
+};
+
+// ============ LLM API Endpoints ============
+
+export const LLM_ENDPOINTS = {
+  gemini: 'https://generativelanguage.googleapis.com/v1/models',
+  openai: 'https://api.openai.com/v1/chat/completions',
+  claude: 'https://api.anthropic.com/v1/messages',
+};
+
+// ============ LLM Prompt Templates ============
+
+export const PROMPTS = {
+  quiz: `Bạn là AI trắc nghiệm. Trả về JSON thuần duy nhất:
+{"answer_index": <số nguyên 0-index>, "explanation": "<giải thích ngắn>"}
+
+Câu hỏi: {{question_text}}
+Lựa chọn (0-indexed):
+{{choices}}
+
+QUY TẮC BẮT BUỘC:
+- answer_index PHẢI là số từ 0 đến ${'{'}choices.length - 1{'}'} 
+- Nếu có 4 lựa chọn (A,B,C,D) → index hợp lệ: 0,1,2,3
+- KHÔNG trả về index >= số lựa chọn
+- KHÔNG thêm text ngoài JSON`,
+
+  audio: `Câu hỏi: "{{transcript}}"
+Trả lời ngắn gọn, chính xác. JSON thuần:
+{"answer":"<trả lời>", "explanation":"<giải thích ngắn nếu cần>"}`,
+};
+
+// ============ Rate Limiting ============
+
+export const RATE_LIMIT = {
+  maxConcurrent: 3,
+  retryDelay: 1500, // ms
+  maxRetries: 1,
+};
+
+// ============ Performance ============
+
+export const PERFORMANCE = {
+  domScanDebounce: 200, // ms
+  clickDelay: { min: 50, max: 200 }, // ms
+  audioQATimeout: 3000, // ms
+  quizSelectTimeout: 300, // ms
+};
+
+// ============ Storage Keys ============
+
+export const STORAGE_KEYS = {
+  config: 'qorva_config',
+  cache: 'qorva_cache',
+};
+
+// ============ Offscreen Reasons ============
+
+export const OFFSCREEN_REASONS = {
+  audioCapture: 'AUDIO_PLAYBACK' as chrome.offscreen.Reason,
+};
