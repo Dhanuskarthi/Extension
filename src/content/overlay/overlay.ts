@@ -160,25 +160,37 @@ class OverlayManager {
       const shortError = this.truncateError(data.errorMessage || 'Error');
       body.innerHTML = `<div class="qorva-error-msg">❌ ${shortError}</div>`;
     } else if (data.status === 'success' && data.answer) {
-      // Validate answer index
-      const indices = Array.isArray(data.answer.answer_index) 
+      const choicesCount = data.question.choices.length;
+      
+      // Get and CLAMP indices to valid range
+      let indices = Array.isArray(data.answer.answer_index) 
         ? data.answer.answer_index 
         : [data.answer.answer_index];
       
-      const validIndices = indices.filter(i => i >= 0 && i < data.question.choices.length);
+      // Clamp each index to valid range [0, choicesCount-1]
+      indices = indices.map(i => {
+        if (typeof i !== 'number' || isNaN(i)) return 0;
+        if (i < 0) return 0;
+        if (i >= choicesCount) return choicesCount - 1; // Clamp to last valid index
+        return i;
+      });
       
-      if (validIndices.length === 0) {
-        body.innerHTML = `<div class="qorva-error-msg">⚠️ Invalid answer index</div>`;
-        return;
-      }
+      // Remove duplicates
+      indices = [...new Set(indices)];
       
-      const answers = validIndices.map(i => {
-        const letter = String.fromCharCode(65 + i);
-        const choice = data.question.choices[i]?.substring(0, 50) || '';
+      const answers = indices.map(i => {
+        const letter = String.fromCharCode(65 + i); // A, B, C, D...
+        const choice = data.question.choices[i]?.substring(0, 60) || '';
         return `<span class="qorva-badge">${letter}. ${choice}</span>`;
       }).join('');
       
-      body.innerHTML = `<div class="qorva-answers">${answers}</div>`;
+      // Check if explanation should be shown (default: false for compact display)
+      const showExplanation = data.answer.explanation && data.answer.explanation.length > 0;
+      
+      body.innerHTML = `
+        <div class="qorva-answers">${answers}</div>
+        ${showExplanation ? `<p class="qorva-explanation">${data.answer.explanation}</p>` : ''}
+      `;
     }
     
     card.classList.add('qorva-visible');
@@ -309,11 +321,11 @@ class OverlayManager {
         pointer-events: auto;
         background: rgba(15, 15, 25, 0.95);
         backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 14px;
         box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
-        min-width: 200px;
-        max-width: 280px;
+        min-width: 240px;
+        max-width: 320px;
         opacity: 0;
         transform: translateX(12px) scale(0.95);
         transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
