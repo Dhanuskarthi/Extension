@@ -200,22 +200,23 @@ export const LLM_ENDPOINTS = {
 // ============ LLM Prompt Templates ============
 
 export const PROMPTS = {
-  quiz: `Bạn là AI trắc nghiệm. Trả về JSON thuần duy nhất:
-{"answer_index": <số nguyên 0-index>, "explanation": "<giải thích ngắn>"}
+  quiz: `You are a quiz AI. Return ONLY valid JSON:
+{"answer_index": <INTEGER>, "explanation": "<brief explanation>"}
 
-Câu hỏi: {{question_text}}
-Lựa chọn (0-indexed):
+Question: {{question_text}}
+
+Choices:
 {{choices}}
 
-QUY TẮC BẮT BUỘC:
-- answer_index PHẢI là số từ 0 đến ${'{'}choices.length - 1{'}'} 
-- Nếu có 4 lựa chọn (A,B,C,D) → index hợp lệ: 0,1,2,3
-- KHÔNG trả về index >= số lựa chọn
-- KHÔNG thêm text ngoài JSON`,
+IMPORTANT RULES:
+- answer_index MUST be the NUMBER in parentheses before the correct choice
+- If choices are (0), (1), (2), (3) then valid indices are 0, 1, 2, 3
+- Return the NUMBER, not a letter
+- DO NOT return text outside of JSON`,
 
-  audio: `Câu hỏi: "{{transcript}}"
-Trả lời ngắn gọn, chính xác. JSON thuần:
-{"answer":"<trả lời>", "explanation":"<giải thích ngắn nếu cần>"}`,
+  audio: `Question: "{{transcript}}"
+Answer briefly and accurately. Pure JSON only:
+{"answer":"<answer>", "explanation":"<brief if needed>"}`,
 };
 
 // ============ Rate Limiting ============
