@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QORVA - Settings</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">
+        <span class="logo-icon">⚡</span>
+        <h1>QORVA</h1>
+      </div>
+      <div class="theme-toggle">
+        <button class="theme-btn" data-theme="light" title="Light">☀️</button>
+        <button class="theme-btn active" data-theme="dark" title="Dark">🌙</button>
+        <button class="theme-btn" data-theme="system" title="System">💻</button>
+      </div>
+    </header>
+
+    <main>
+      <!-- LLM Provider -->
+      <section class="section">
+        <h2>🤖 AI Provider</h2>
+        <div class="form-group">
+          <label for="provider">Provider</label>
+          <select id="provider">
+            <option value="gemini">Gemini (Free)</option>
+            <option value="openai">OpenAI</option>
+            <option value="claude">Claude</option>
+          </select>
+        </div>
+
+        <!-- Gemini -->
+        <div id="gemini-settings" class="provider-settings">
+          <div class="form-group">
+            <label for="gemini-key">API Key</label>
+            <input type="password" id="gemini-key" placeholder="AI...">
+            <a href="https://makersuite.google.com/app/apikey" target="_blank" class="help-link">Get Free API Key →</a>
+          </div>
+          <div class="form-group">
+            <label for="gemini-model">Model</label>
+            <select id="gemini-model">
+              <option value="gemini-2.5-flash">2.5 Flash (Recommended)</option>
+              <option value="gemini-2.5-flash-lite">2.5 Flash Lite</option>
+              <option value="gemini-2.0-flash">2.0 Flash</option>
+              <option value="gemini-1.5-flash">1.5 Flash</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- OpenAI -->
+        <div id="openai-settings" class="provider-settings hidden">
+          <div class="form-group">
+            <label for="openai-key">API Key</label>
+            <input type="password" id="openai-key" placeholder="sk-...">
+          </div>
+          <div class="form-group">
+            <label for="openai-model">Model</label>
+            <select id="openai-model">
+              <option value="gpt-4o-mini">GPT-4o Mini</option>
+              <option value="gpt-4o">GPT-4o</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Claude -->
+        <div id="claude-settings" class="provider-settings hidden">
+          <div class="form-group">
+            <label for="claude-key">API Key</label>
+            <input type="password" id="claude-key" placeholder="sk-ant-...">
+          </div>
+          <div class="form-group">
+            <label for="claude-model">Model</label>
+            <select id="claude-model">
+              <option value="claude-3-haiku-20240307">Claude 3 Haiku</option>
+              <option value="claude-3-sonnet-20240229">Claude 3 Sonnet</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <!-- Quiz -->
+      <section class="section">
+        <h2>📝 Quiz Automation</h2>
+        <div class="toggle-group form-group">
+          <label>
+            <input type="checkbox" id="quiz-auto" checked>
+            Auto-detect & answer questions
+          </label>
+        </div>
+        <div class="toggle-group form-group">
+          <label>
+            <input type="checkbox" id="quiz-submit">
+            Auto-submit when done
+          </label>
+        </div>
+        <div class="form-group">
+          <label>Selection delay (ms)</label>
+          <div class="range-group">
+            <input type="number" id="delay-min" min="0" max="500" value="50">
+            <span>–</span>
+            <input type="number" id="delay-max" min="0" max="1000" value="200">
+          </div>
+        </div>
+      </section>
+
+      <!-- Audio -->
+      <section class="section">
+        <h2>🎤 Audio QA</h2>
+        <div class="toggle-group form-group">
+          <label>
+            <input type="checkbox" id="audio-enabled">
+            Enable voice recognition
+          </label>
+        </div>
+        <div class="toggle-group form-group">
+          <label>
+            <input type="checkbox" id="audio-tts" checked>
+            Text-to-speech answers
+          </label>
+        </div>
+        <div class="toggle-group form-group">
+          <label>
+            <input type="checkbox" id="audio-copy">
+            Auto-copy to clipboard
+          </label>
+        </div>
+      </section>
+
+      <!-- Cache & Blacklist -->
+      <section class="section">
+        <h2>⚙️ Advanced</h2>
+        <div class="inline-row">
+          <div class="toggle-group form-group">
+            <label>
+              <input type="checkbox" id="cache-enabled" checked>
+              Cache answers
+            </label>
+          </div>
+          <div class="form-group">
+            <input type="number" id="cache-ttl" min="1" max="168" value="24" style="width:50px">
+            <small>hours</small>
+          </div>
+          <button type="button" id="clear-cache" class="btn btn-secondary">Clear</button>
+        </div>
+        <div class="form-group" style="margin-top:10px">
+          <label for="blacklist">Blacklisted domains</label>
+          <textarea id="blacklist" rows="2" placeholder="example.com"></textarea>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <button type="button" id="save" class="btn btn-primary">💾 Save</button>
+      <button type="button" id="reset" class="btn btn-secondary">Reset</button>
+      <div id="status" class="status"></div>
+    </footer>
+  </div>
+
+  <script type="module" src="options.ts"></script>
+</body>
+</html>
