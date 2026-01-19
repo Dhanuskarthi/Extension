@@ -229,18 +229,18 @@ Answer briefly and accurately. Pure JSON only:
 // ============ Rate Limiting ============
 
 export const RATE_LIMIT = {
-  maxConcurrent: 3,
-  retryDelay: 1500, // ms
-  maxRetries: 1,
+  maxConcurrent: 5, // Allow more parallel requests for faster processing
+  retryDelay: 500, // Reduced from 1500ms
+  maxRetries: 2,
 };
 
 // ============ Performance ============
 
 export const PERFORMANCE = {
-  domScanDebounce: 200, // ms
-  clickDelay: { min: 50, max: 200 }, // ms
+  domScanDebounce: 100, // Reduced from 200ms for faster detection
+  clickDelay: { min: 30, max: 100 }, // Faster auto-selection
   audioQATimeout: 3000, // ms
-  quizSelectTimeout: 300, // ms
+  quizSelectTimeout: 150, // Reduced from 300ms
 };
 
 // ============ Storage Keys ============
