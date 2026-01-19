@@ -214,20 +214,10 @@ class OverlayManager {
         audioSection = '<div class="qorva-audio-indicator">🎧 <small>Listening</small></div>';
       }
       
-      // Explanation section with toggle (collapsed by default based on config)
+      // Show explanation directly if it exists
       let explanationSection = '';
       if (hasExplanation) {
-        explanationSection = `
-          <div class="qorva-explanation-wrapper" data-collapsed="true">
-            <button class="qorva-explanation-toggle">
-              <span class="qorva-toggle-icon">▶</span>
-              <span>Explanation</span>
-            </button>
-            <div class="qorva-explanation-content">
-              <p class="qorva-explanation">${data.answer.explanation}</p>
-            </div>
-          </div>
-        `;
+        explanationSection = `<p class="qorva-explanation">${data.answer.explanation}</p>`;
       }
       
       body.innerHTML = `
@@ -244,20 +234,6 @@ class OverlayManager {
           const url = (transcribeBtn as HTMLElement).dataset.audioUrl;
           if (url) {
             this.handleTranscribeClick(url, data.question.id);
-          }
-        });
-      }
-      
-      // Add explanation toggle listener
-      const toggleBtn = body.querySelector('.qorva-explanation-toggle');
-      if (toggleBtn) {
-        toggleBtn.addEventListener('click', () => {
-          const wrapper = body.querySelector('.qorva-explanation-wrapper');
-          if (wrapper) {
-            const isCollapsed = wrapper.getAttribute('data-collapsed') === 'true';
-            wrapper.setAttribute('data-collapsed', isCollapsed ? 'false' : 'true');
-            const icon = wrapper.querySelector('.qorva-toggle-icon');
-            if (icon) icon.textContent = isCollapsed ? '▼' : '▶';
           }
         });
       }
