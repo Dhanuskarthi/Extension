@@ -187,20 +187,55 @@ class OverlayManager {
       // Check if explanation should be shown (default: false for compact display)
       const showExplanation = data.answer.explanation && data.answer.explanation.length > 0;
       
-      // Audio indicator for listening questions
+      // Audio indicator and transcribe button for listening questions
       const hasAudio = data.question.meta?.hasAudioContext;
-      const audioIndicator = hasAudio 
-        ? '<div class="qorva-audio-indicator">🎧 <small>Listening</small></div>' 
-        : '';
+      const audioUrl = data.question.meta?.audioUrl;
+      
+      let audioSection = '';
+      if (hasAudio && audioUrl) {
+        audioSection = `
+          <div class="qorva-audio-indicator">
+            🎧 <small>Listening Question</small>
+            <button class="qorva-transcribe-btn" data-audio-url="${audioUrl}">
+              🎤 Transcribe
+            </button>
+          </div>
+        `;
+      } else if (hasAudio) {
+        audioSection = '<div class="qorva-audio-indicator">🎧 <small>Listening</small></div>';
+      }
       
       body.innerHTML = `
-        ${audioIndicator}
+        ${audioSection}
         <div class="qorva-answers">${answers}</div>
         ${showExplanation ? `<p class="qorva-explanation">${data.answer.explanation}</p>` : ''}
       `;
+      
+      // Add transcribe button listener
+      const transcribeBtn = body.querySelector('.qorva-transcribe-btn');
+      if (transcribeBtn) {
+        transcribeBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          const url = (transcribeBtn as HTMLElement).dataset.audioUrl;
+          if (url) {
+            this.handleTranscribeClick(url, data.question.id);
+          }
+        });
+      }
     }
     
     card.classList.add('qorva-visible');
+  }
+
+  /**
+   * Handle transcribe button click
+   */
+  private async handleTranscribeClick(audioUrl: string, questionId: string): Promise<void> {
+    // Show loading state
+    this.showToast('🎤 Transcribing audio... (Feature coming soon)');
+    
+    // TODO: Phase 3 - Implement Whisper transcription
+    console.log('[QORVA] Transcribe requested for:', audioUrl, 'Question:', questionId);
   }
 
   /**
