@@ -31,6 +31,8 @@ export interface QuizQuestion {
     source?: 'auto' | 'manual';
     hasAudioContext?: boolean;
     audioUrl?: string;
+    hasImageContext?: boolean;
+    imageUrl?: string;
   };
 }
 

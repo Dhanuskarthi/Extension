@@ -29,8 +29,8 @@ export function parseQuestion(container: HTMLElement): QuizQuestion | null {
   // Detect language
   const lang = detectLanguage(questionText);
   
-  // Detect audio context (for TOEIC listening questions)
-  const audioContext = detectAudioContext(container);
+  // Detect audio/image context (for TOEIC listening questions)
+  const context = detectAudioContext(container);
   
   return {
     id: container.getAttribute('data-qorva-id') || generateId('q'),
@@ -40,8 +40,10 @@ export function parseQuestion(container: HTMLElement): QuizQuestion | null {
     meta: {
       lang,
       source: 'auto',
-      hasAudioContext: audioContext.hasAudio,
-      audioUrl: audioContext.audioUrl,
+      hasAudioContext: context.hasAudio,
+      audioUrl: context.audioUrl,
+      hasImageContext: context.hasImage,
+      imageUrl: context.imageUrl,
     },
   };
 }
@@ -49,12 +51,14 @@ export function parseQuestion(container: HTMLElement): QuizQuestion | null {
 /**
  * Detect if question has audio context (TOEIC listening)
  */
-function detectAudioContext(container: HTMLElement): { hasAudio: boolean; audioUrl?: string } {
+function detectAudioContext(container: HTMLElement): { hasAudio: boolean; audioUrl?: string; hasImage?: boolean; imageUrl?: string } {
   // Check for audio in parent question-group-wrapper
   const questionGroup = container.closest('.question-group-wrapper');
   if (!questionGroup) {
     return { hasAudio: false };
   }
+  
+  const result: { hasAudio: boolean; audioUrl?: string; hasImage?: boolean; imageUrl?: string } = { hasAudio: false };
   
   // Look for audio element in context
   const audioSelectors = [
@@ -67,17 +71,39 @@ function detectAudioContext(container: HTMLElement): { hasAudio: boolean; audioU
   for (const selector of audioSelectors) {
     const source = questionGroup.querySelector<HTMLSourceElement>(selector);
     if (source?.src) {
-      return { hasAudio: true, audioUrl: source.src };
+      result.hasAudio = true;
+      result.audioUrl = source.src;
+      break;
     }
   }
   
   // Check for audio element directly
-  const audioEl = questionGroup.querySelector<HTMLAudioElement>('audio');
-  if (audioEl?.src) {
-    return { hasAudio: true, audioUrl: audioEl.src };
+  if (!result.hasAudio) {
+    const audioEl = questionGroup.querySelector<HTMLAudioElement>('audio');
+    if (audioEl?.src) {
+      result.hasAudio = true;
+      result.audioUrl = audioEl.src;
+    }
   }
   
-  return { hasAudio: false };
+  // Look for image in context (for questions with graphics/tables)
+  const imageSelectors = [
+    '.context-image img',
+    '.context-content img',
+    'img.lazyel',
+    'img[data-src]',
+  ];
+  
+  for (const selector of imageSelectors) {
+    const img = questionGroup.querySelector<HTMLImageElement>(selector);
+    if (img?.src && !img.src.includes('data:')) {
+      result.hasImage = true;
+      result.imageUrl = img.src;
+      break;
+    }
+  }
+  
+  return result;
 }
 
 /**
