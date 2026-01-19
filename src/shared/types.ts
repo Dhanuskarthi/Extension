@@ -93,12 +93,29 @@ export interface UIConfig {
   showExplanation: boolean;
 }
 
+// ============ PRO Tier Types ============
+
+export interface ProConfig {
+  isPro: boolean;
+  devMode: boolean; // Bypass PRO check during development
+  dailyLimit: number;
+  usedToday: number;
+  lastResetDate: string;
+}
+
+// PRO Features:
+// - Audio auto-transcribe
+// - Custom accent/text colors  
+// - Unlimited LLM requests (no daily limit)
+// - Priority support
+
 export interface Config {
   llm: LLMConfig;
   quiz: QuizConfig;
   audio: AudioConfig;
   cache: CacheConfig;
   ui: UIConfig;
+  pro: ProConfig;
   blacklistDomains: string[];
 }
 

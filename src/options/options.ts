@@ -228,6 +228,7 @@ async function saveConfig(): Promise<void> {
         textColor: elements.textColor.value,
         showExplanation: elements.showExplanation.checked,
       },
+      pro: currentConfig.pro, // Preserve PRO settings
       blacklistDomains: elements.blacklist.value
         .split('\n')
         .map(d => d.trim())

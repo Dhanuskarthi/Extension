@@ -2,6 +2,7 @@
 docs/
 *.md
 !README.md
+!README.vi.md
 AI_AGENT_PROMPT.md
 
 # Dependencies

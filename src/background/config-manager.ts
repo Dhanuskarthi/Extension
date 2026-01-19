@@ -169,6 +169,7 @@ class ConfigManager {
       audio: { ...DEFAULT_CONFIG.audio, ...stored.audio },
       cache: { ...DEFAULT_CONFIG.cache, ...stored.cache },
       ui: { ...DEFAULT_CONFIG.ui, ...stored.ui },
+      pro: { ...DEFAULT_CONFIG.pro, ...stored.pro },
       blacklistDomains: stored.blacklistDomains || DEFAULT_CONFIG.blacklistDomains,
     };
   }

@@ -60,6 +60,13 @@ export const DEFAULT_CONFIG: Config = {
     textColor: '#ffffff',
     showExplanation: false,
   },
+  pro: {
+    isPro: false,
+    devMode: true, // Set to false for production release
+    dailyLimit: 50, // Free tier limit
+    usedToday: 0,
+    lastResetDate: new Date().toDateString(),
+  },
   blacklistDomains: [],
 };
 

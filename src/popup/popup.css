@@ -35,6 +35,8 @@ body {
 
 .popup {
     padding: 16px;
+    border-radius: 16px;
+    overflow: hidden;
 }
 
 /* Header */

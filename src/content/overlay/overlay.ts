@@ -514,6 +514,10 @@ class OverlayManager {
         color: #4ade80;
         font-size: 12px;
       }
+
+      .qorva-transcribe-btn  {
+        border-radius: 6px;
+      }
       
       .qorva-transcript-text {
         font-style: italic;
@@ -525,6 +529,21 @@ class OverlayManager {
       .qorva-answer-text {
         font-size: 13px;
         line-height: 1.5;
+      }
+      
+      .qorva-explanation {
+        color: #ffffff;
+        font-size: 12px;
+        line-height: 1.5;
+        margin: 8px 0 0 0;
+        padding: 10px 12px;
+        background: #1e293b;
+        border-radius: 6px;
+        border: 1px solid #475569;
+      }
+      
+      .qorva-explanation:empty {
+        display: none;
       }
       
       .qorva-toast {
