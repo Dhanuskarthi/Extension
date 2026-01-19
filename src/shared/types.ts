@@ -84,11 +84,19 @@ export interface CacheEntry<T> {
 
 // ============ Config Types ============
 
+export interface UIConfig {
+  theme: 'dark' | 'light' | 'system';
+  accentColor: string;
+  textColor: string;
+  showExplanation: boolean;
+}
+
 export interface Config {
   llm: LLMConfig;
   quiz: QuizConfig;
   audio: AudioConfig;
   cache: CacheConfig;
+  ui: UIConfig;
   blacklistDomains: string[];
 }
 

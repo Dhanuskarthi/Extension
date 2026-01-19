@@ -168,6 +168,7 @@ class ConfigManager {
       quiz: { ...DEFAULT_CONFIG.quiz, ...stored.quiz },
       audio: { ...DEFAULT_CONFIG.audio, ...stored.audio },
       cache: { ...DEFAULT_CONFIG.cache, ...stored.cache },
+      ui: { ...DEFAULT_CONFIG.ui, ...stored.ui },
       blacklistDomains: stored.blacklistDomains || DEFAULT_CONFIG.blacklistDomains,
     };
   }

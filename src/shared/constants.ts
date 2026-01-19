@@ -54,6 +54,12 @@ export const DEFAULT_CONFIG: Config = {
     enabled: true,
     ttlHours: 24,
   },
+  ui: {
+    theme: 'system',
+    accentColor: '#a78bfa',
+    textColor: '#ffffff',
+    showExplanation: false,
+  },
   blacklistDomains: [],
 };
 

@@ -35,6 +35,11 @@ const elements = {
   audioTts: $('audio-tts') as HTMLInputElement,
   audioCopy: $('audio-copy') as HTMLInputElement,
   
+  // UI
+  showExplanation: $('show-explanation') as HTMLInputElement,
+  accentColor: $('accent-color') as HTMLInputElement,
+  textColor: $('text-color') as HTMLInputElement,
+  
   // Cache
   cacheEnabled: $('cache-enabled') as HTMLInputElement,
   cacheTtl: $('cache-ttl') as HTMLInputElement,
@@ -140,6 +145,11 @@ function populateForm(): void {
   elements.audioTts.checked = currentConfig.audio.tts;
   elements.audioCopy.checked = currentConfig.audio.autoCopy;
   
+  // UI
+  elements.showExplanation.checked = currentConfig.ui?.showExplanation || false;
+  elements.accentColor.value = currentConfig.ui?.accentColor || '#a78bfa';
+  elements.textColor.value = currentConfig.ui?.textColor || '#ffffff';
+  
   // Cache
   elements.cacheEnabled.checked = currentConfig.cache.enabled;
   elements.cacheTtl.value = currentConfig.cache.ttlHours.toString();
@@ -211,6 +221,12 @@ async function saveConfig(): Promise<void> {
       cache: {
         enabled: elements.cacheEnabled.checked,
         ttlHours: parseInt(elements.cacheTtl.value) || 24,
+      },
+      ui: {
+        theme: currentConfig.ui?.theme || 'system',
+        accentColor: elements.accentColor.value,
+        textColor: elements.textColor.value,
+        showExplanation: elements.showExplanation.checked,
       },
       blacklistDomains: elements.blacklist.value
         .split('\n')
