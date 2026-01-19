@@ -180,7 +180,16 @@ class OverlayManager {
       
       const answers = indices.map(i => {
         const letter = String.fromCharCode(65 + i); // A, B, C, D...
-        const choice = data.question.choices[i]?.substring(0, 60) || '';
+        let choice = data.question.choices[i] || '';
+        
+        // Strip existing letter prefix (e.g., "A. ", "B. ") to avoid duplication
+        choice = choice.replace(/^[A-Z]\.\s*/, '');
+        
+        // Truncate if too long
+        if (choice.length > 60) {
+          choice = choice.substring(0, 60);
+        }
+        
         return `<span class="qorva-badge">${letter}. ${choice}</span>`;
       }).join('');
       
