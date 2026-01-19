@@ -127,9 +127,26 @@ if (window.__QORVA_INITIALIZED__) {
         });
         
         try {
+          // Auto-transcribe if audio question detected
+          let questionWithContext = { ...question };
+          if (question.meta?.hasAudioContext && question.meta?.audioUrl) {
+            console.log(`[QORVA] Auto-transcribing audio for question: ${id}`);
+            overlayManager.showToast('🎤 Auto-transcribing audio...');
+            
+            const transcript = await this.transcribeAudio(question.meta.audioUrl);
+            if (transcript) {
+              // Append transcript to question text for LLM context
+              questionWithContext = {
+                ...question,
+                text: `[Audio Transcript]: ${transcript}\n\n[Question]: ${question.text}`,
+              };
+              console.log(`[QORVA] Transcript added to question: ${id}`);
+            }
+          }
+          
           const response = await chrome.runtime.sendMessage({
             type: MSG_TYPES.LLM_ANSWER_QUIZ,
-            payload: question,
+            payload: questionWithContext,
           });
           
           // Mark as fully processed
@@ -301,6 +318,33 @@ if (window.__QORVA_INITIALIZED__) {
         stt.stop();
         audioCapture.stop();
         this.audioEnabled = false;
+      }
+    }
+
+    /**
+     * Transcribe audio from URL using local Whisper
+     */
+    private async transcribeAudio(audioUrl: string): Promise<string | null> {
+      try {
+        const { transcribeFromUrl } = await import('./audio/whisper');
+        
+        const result = await transcribeFromUrl(audioUrl, (progress) => {
+          if (progress.status === 'loading') {
+            overlayManager.showToast(`📥 ${progress.message || 'Loading Whisper...'}`);
+          } else if (progress.status === 'transcribing') {
+            overlayManager.showToast(`🎤 ${progress.message || 'Transcribing...'}`);
+          }
+        });
+        
+        if (result?.text) {
+          console.log('[QORVA] Audio transcribed:', result.text.substring(0, 100) + '...');
+          return result.text;
+        }
+        
+        return null;
+      } catch (error) {
+        console.error('[QORVA] Transcription failed:', error);
+        return null;
       }
     }
 
