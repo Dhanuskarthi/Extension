@@ -570,6 +570,49 @@ class OverlayManager {
         line-height: 1.5;
       }
       
+      .qorva-explanation-wrapper {
+        margin-top: 10px;
+      }
+      
+      .qorva-explanation-toggle {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        padding: 8px 10px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 6px;
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 11px;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      
+      .qorva-explanation-toggle:hover {
+        background: rgba(255, 255, 255, 0.08);
+        color: #ffffff;
+      }
+      
+      .qorva-toggle-icon {
+        font-size: 10px;
+      }
+      
+      .qorva-explanation-content {
+        overflow: hidden;
+        transition: max-height 0.25s ease, opacity 0.2s ease;
+      }
+      
+      .qorva-explanation-wrapper[data-collapsed="true"] .qorva-explanation-content {
+        max-height: 0;
+        opacity: 0;
+      }
+      
+      .qorva-explanation-wrapper[data-collapsed="false"] .qorva-explanation-content {
+        max-height: 500px;
+        opacity: 1;
+      }
+      
       .qorva-explanation {
         color: #ffffff;
         font-size: 12px;
