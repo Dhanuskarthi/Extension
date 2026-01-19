@@ -127,21 +127,44 @@ if (window.__QORVA_INITIALIZED__) {
         });
         
         try {
+          // Build context from audio and/or image
+          let contextParts: string[] = [];
+          
           // Auto-transcribe if audio question detected
-          let questionWithContext = { ...question };
           if (question.meta?.hasAudioContext && question.meta?.audioUrl) {
             console.log(`[QORVA] Auto-transcribing audio for question: ${id}`);
-            overlayManager.showToast('🎤 Auto-transcribing audio...');
+            overlayManager.showToast('🎤 Transcribing audio...');
             
             const transcript = await this.transcribeAudio(question.meta.audioUrl);
             if (transcript) {
-              // Append transcript to question text for LLM context
-              questionWithContext = {
-                ...question,
-                text: `[Audio Transcript]: ${transcript}\n\n[Question]: ${question.text}`,
-              };
+              contextParts.push(`[Audio Transcript]: ${transcript}`);
               console.log(`[QORVA] Transcript added to question: ${id}`);
             }
+          }
+          
+          // Analyze image if present
+          if (question.meta?.hasImageContext && question.meta?.imageUrl) {
+            console.log(`[QORVA] Analyzing image for question: ${id}`);
+            overlayManager.showToast('🖼️ Analyzing image...');
+            
+            const imageResponse = await chrome.runtime.sendMessage({
+              type: MSG_TYPES.LLM_ANALYZE_IMAGE,
+              payload: { imageUrl: question.meta.imageUrl },
+            });
+            
+            if (imageResponse?.ok && imageResponse.data) {
+              contextParts.push(`[Image Content]: ${imageResponse.data}`);
+              console.log(`[QORVA] Image analysis added to question: ${id}`);
+            }
+          }
+          
+          // Combine context with question
+          let questionWithContext = { ...question };
+          if (contextParts.length > 0) {
+            questionWithContext = {
+              ...question,
+              text: `${contextParts.join('\n\n')}\n\n[Question]: ${question.text}`,
+            };
           }
           
           const response = await chrome.runtime.sendMessage({

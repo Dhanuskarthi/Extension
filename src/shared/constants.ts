@@ -9,6 +9,7 @@ import type { Config } from './types';
 export const MSG_TYPES = {
   LLM_ANSWER_QUIZ: 'LLM_ANSWER_QUIZ',
   LLM_ANSWER_AUDIO: 'LLM_ANSWER_AUDIO',
+  LLM_ANALYZE_IMAGE: 'LLM_ANALYZE_IMAGE',
   CFG_GET: 'CFG_GET',
   CFG_SET: 'CFG_SET',
   STATUS_GET: 'STATUS_GET',

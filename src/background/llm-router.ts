@@ -95,6 +95,82 @@ class LLMRouter {
   }
 
   /**
+   * Analyze image using Gemini Vision API to extract text/info
+   */
+  async analyzeImage(imageUrl: string): Promise<LLMResponse<string>> {
+    try {
+      const config = await configManager.get();
+      const geminiConfig = config.llm.gemini;
+      
+      if (!geminiConfig?.apiKey) {
+        return { success: false, error: 'Gemini API key not configured', retryable: false };
+      }
+      
+      // Fetch image and convert to base64
+      const imageData = await this.fetchImageAsBase64(imageUrl);
+      if (!imageData) {
+        return { success: false, error: 'Failed to fetch image', retryable: true };
+      }
+      
+      // Use Gemini Vision model
+      const visionModel = 'gemini-1.5-flash';
+      const url = `${LLM_ENDPOINTS.gemini}/${visionModel}:generateContent?key=${geminiConfig.apiKey}`;
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            parts: [
+              { text: 'Extract all text and important information from this image. If it contains a table, schedule, or graphic, describe the key data. Be concise but complete.' },
+              { inline_data: { mime_type: imageData.mimeType, data: imageData.base64 } }
+            ],
+          }],
+          generationConfig: { temperature: 0.2, maxOutputTokens: 1024 },
+        }),
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error?.message || `Gemini Vision error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      
+      console.log('[QORVA] Image analysis result:', text.substring(0, 100) + '...');
+      return { success: true, data: text };
+    } catch (error) {
+      return { success: false, error: formatError(error), retryable: true };
+    }
+  }
+
+  /**
+   * Fetch image and convert to base64
+   */
+  private async fetchImageAsBase64(imageUrl: string): Promise<{ base64: string; mimeType: string } | null> {
+    try {
+      const response = await fetch(imageUrl);
+      if (!response.ok) return null;
+      
+      const blob = await response.blob();
+      const mimeType = blob.type || 'image/png';
+      
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const base64 = (reader.result as string).split(',')[1];
+          resolve({ base64, mimeType });
+        };
+        reader.onerror = () => resolve(null);
+        reader.readAsDataURL(blob);
+      });
+    } catch {
+      return null;
+    }
+  }
+
+  /**
    * Build quiz prompt from question
    */
   private buildQuizPrompt(question: QuizQuestion): string {

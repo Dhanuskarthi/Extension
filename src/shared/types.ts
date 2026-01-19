@@ -126,6 +126,7 @@ export interface Config {
 export type MessageType =
   | 'LLM_ANSWER_QUIZ'
   | 'LLM_ANSWER_AUDIO'
+  | 'LLM_ANALYZE_IMAGE'
   | 'CFG_GET'
   | 'CFG_SET'
   | 'STATUS_GET'

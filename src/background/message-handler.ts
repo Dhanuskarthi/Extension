@@ -50,6 +50,9 @@ async function handleMessage(message: Message): Promise<MessageResponse> {
     case MSG_TYPES.LLM_ANSWER_AUDIO:
       return handleAudioAnswer(message.payload as { transcript: string });
     
+    case MSG_TYPES.LLM_ANALYZE_IMAGE:
+      return handleImageAnalysis(message.payload as { imageUrl: string });
+    
     case MSG_TYPES.CFG_GET:
       return handleConfigGet();
     
@@ -101,6 +104,24 @@ async function handleAudioAnswer(
   payload: { transcript: string }
 ): Promise<MessageResponse> {
   const result = await llmRouter.answerAudio(payload.transcript);
+  
+  if (!result.success) {
+    return {
+      ok: false,
+      error: result.error,
+    };
+  }
+  
+  return { ok: true, data: result.data };
+}
+
+/**
+ * Handle image analysis request
+ */
+async function handleImageAnalysis(
+  payload: { imageUrl: string }
+): Promise<MessageResponse> {
+  const result = await llmRouter.analyzeImage(payload.imageUrl);
   
   if (!result.success) {
     return {
