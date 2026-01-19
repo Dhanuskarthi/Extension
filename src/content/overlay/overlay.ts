@@ -231,11 +231,63 @@ class OverlayManager {
    * Handle transcribe button click
    */
   private async handleTranscribeClick(audioUrl: string, questionId: string): Promise<void> {
-    // Show loading state
-    this.showToast('🎤 Transcribing audio... (Feature coming soon)');
+    // Dynamic import to avoid loading Whisper until needed
+    const { transcribeFromUrl, getWhisperStatus } = await import('../audio/whisper');
     
-    // TODO: Phase 3 - Implement Whisper transcription
+    const status = getWhisperStatus();
+    
+    if (status === 'unloaded') {
+      this.showToast('🔄 Loading Whisper model... (First time: ~40MB download)');
+    } else {
+      this.showToast('🎤 Transcribing audio...');
+    }
+    
     console.log('[QORVA] Transcribe requested for:', audioUrl, 'Question:', questionId);
+    
+    const result = await transcribeFromUrl(audioUrl, (progress) => {
+      if (progress.status === 'loading') {
+        this.showToast(`📥 ${progress.message || 'Loading model...'}`);
+      } else if (progress.status === 'transcribing') {
+        this.showToast(`🎤 ${progress.message || 'Transcribing...'}`);
+      } else if (progress.status === 'error') {
+        this.showToast(`❌ ${progress.message || 'Transcription failed'}`);
+      }
+    });
+    
+    if (result && result.text) {
+      console.log('[QORVA] Transcription result:', result.text);
+      this.showToast('✅ Transcription complete! Check console for text.');
+      
+      // Store transcript for potential use in LLM query
+      this.storeTranscript(questionId, result.text);
+      
+      // Show transcript in a toast (first 100 chars)
+      const preview = result.text.length > 100 
+        ? result.text.substring(0, 97) + '...' 
+        : result.text;
+      setTimeout(() => {
+        this.showToast(`📝 "${preview}"`);
+      }, 2000);
+    } else {
+      this.showToast('❌ Transcription failed. Check console for details.');
+    }
+  }
+
+  /**
+   * Store transcript for question
+   */
+  private transcripts: Map<string, string> = new Map();
+  
+  private storeTranscript(questionId: string, transcript: string): void {
+    this.transcripts.set(questionId, transcript);
+    console.log('[QORVA] Transcript stored for question:', questionId);
+  }
+
+  /**
+   * Get stored transcript
+   */
+  getTranscript(questionId: string): string | undefined {
+    return this.transcripts.get(questionId);
   }
 
   /**
