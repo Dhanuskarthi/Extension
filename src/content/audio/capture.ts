@@ -239,6 +239,77 @@ class AudioCapture {
     
     return Math.sqrt(sum / dataArray.length);
   }
+  /**
+   * Record and transcribe using Whisper
+   */
+  async recordAndTranscribe(durationMs: number = 10000): Promise<string | null> {
+    return new Promise(async (resolve) => {
+      const chunks: Blob[] = [];
+      
+      try {
+        await this.start({
+          source: 'mic',
+          sampleRate: 16000,
+          onSpeechEnd: async (blob) => {
+            chunks.push(blob);
+          },
+          onError: (error) => {
+            console.error('[QORVA] Recording error:', error);
+            resolve(null);
+          }
+        });
+        
+        // Start recording immediately
+        this.startRecording();
+        
+        // Stop after duration
+        setTimeout(async () => {
+          this.stopRecording();
+          await this.stop();
+          
+          if (chunks.length === 0) {
+            resolve(null);
+            return;
+          }
+          
+          // Combine chunks and transcribe
+          const audioBlob = new Blob(chunks, { type: 'audio/webm' });
+          const transcript = await this.transcribeBlob(audioBlob);
+          resolve(transcript);
+        }, durationMs);
+        
+      } catch (error) {
+        console.error('[QORVA] Record and transcribe failed:', error);
+        resolve(null);
+      }
+    });
+  }
+
+  /**
+   * Transcribe audio blob using Whisper
+   */
+  async transcribeBlob(blob: Blob): Promise<string | null> {
+    try {
+      // Convert blob to array buffer
+      const arrayBuffer = await blob.arrayBuffer();
+      
+      // Create audio context to decode
+      const audioContext = new AudioContext({ sampleRate: 16000 });
+      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+      const audioData = audioBuffer.getChannelData(0);
+      
+      await audioContext.close();
+      
+      // Use Whisper to transcribe
+      const { transcribeFromBuffer } = await import('./whisper');
+      const result = await transcribeFromBuffer(audioData);
+      
+      return result?.text || null;
+    } catch (error) {
+      console.error('[QORVA] Blob transcription failed:', error);
+      return null;
+    }
+  }
 }
 
 // Export singleton
