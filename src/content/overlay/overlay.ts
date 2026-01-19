@@ -184,8 +184,8 @@ class OverlayManager {
         return `<span class="qorva-badge">${letter}. ${choice}</span>`;
       }).join('');
       
-      // Check if explanation should be shown (default: false for compact display)
-      const showExplanation = data.answer.explanation && data.answer.explanation.length > 0;
+      // Check if explanation exists
+      const hasExplanation = data.answer.explanation && data.answer.explanation.length > 0;
       
       // Audio indicator and transcribe button for listening questions
       const hasAudio = data.question.meta?.hasAudioContext;
@@ -205,10 +205,26 @@ class OverlayManager {
         audioSection = '<div class="qorva-audio-indicator">🎧 <small>Listening</small></div>';
       }
       
+      // Explanation section with toggle (collapsed by default based on config)
+      let explanationSection = '';
+      if (hasExplanation) {
+        explanationSection = `
+          <div class="qorva-explanation-wrapper" data-collapsed="true">
+            <button class="qorva-explanation-toggle">
+              <span class="qorva-toggle-icon">▶</span>
+              <span>Explanation</span>
+            </button>
+            <div class="qorva-explanation-content">
+              <p class="qorva-explanation">${data.answer.explanation}</p>
+            </div>
+          </div>
+        `;
+      }
+      
       body.innerHTML = `
         ${audioSection}
         <div class="qorva-answers">${answers}</div>
-        ${showExplanation ? `<p class="qorva-explanation">${data.answer.explanation}</p>` : ''}
+        ${explanationSection}
       `;
       
       // Add transcribe button listener
@@ -219,6 +235,20 @@ class OverlayManager {
           const url = (transcribeBtn as HTMLElement).dataset.audioUrl;
           if (url) {
             this.handleTranscribeClick(url, data.question.id);
+          }
+        });
+      }
+      
+      // Add explanation toggle listener
+      const toggleBtn = body.querySelector('.qorva-explanation-toggle');
+      if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+          const wrapper = body.querySelector('.qorva-explanation-wrapper');
+          if (wrapper) {
+            const isCollapsed = wrapper.getAttribute('data-collapsed') === 'true';
+            wrapper.setAttribute('data-collapsed', isCollapsed ? 'false' : 'true');
+            const icon = wrapper.querySelector('.qorva-toggle-icon');
+            if (icon) icon.textContent = isCollapsed ? '▼' : '▶';
           }
         });
       }
