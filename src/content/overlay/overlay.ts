@@ -187,7 +187,14 @@ class OverlayManager {
       // Check if explanation should be shown (default: false for compact display)
       const showExplanation = data.answer.explanation && data.answer.explanation.length > 0;
       
+      // Audio indicator for listening questions
+      const hasAudio = data.question.meta?.hasAudioContext;
+      const audioIndicator = hasAudio 
+        ? '<div class="qorva-audio-indicator">🎧 <small>Listening</small></div>' 
+        : '';
+      
       body.innerHTML = `
+        ${audioIndicator}
         <div class="qorva-answers">${answers}</div>
         ${showExplanation ? `<p class="qorva-explanation">${data.answer.explanation}</p>` : ''}
       `;

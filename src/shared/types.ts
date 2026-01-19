@@ -29,6 +29,8 @@ export interface QuizQuestion {
   meta?: {
     lang?: 'vi' | 'en';
     source?: 'auto' | 'manual';
+    hasAudioContext?: boolean;
+    audioUrl?: string;
   };
 }
 

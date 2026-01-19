@@ -29,6 +29,9 @@ export function parseQuestion(container: HTMLElement): QuizQuestion | null {
   // Detect language
   const lang = detectLanguage(questionText);
   
+  // Detect audio context (for TOEIC listening questions)
+  const audioContext = detectAudioContext(container);
+  
   return {
     id: container.getAttribute('data-qorva-id') || generateId('q'),
     text: questionText,
@@ -37,8 +40,44 @@ export function parseQuestion(container: HTMLElement): QuizQuestion | null {
     meta: {
       lang,
       source: 'auto',
+      hasAudioContext: audioContext.hasAudio,
+      audioUrl: audioContext.audioUrl,
     },
   };
+}
+
+/**
+ * Detect if question has audio context (TOEIC listening)
+ */
+function detectAudioContext(container: HTMLElement): { hasAudio: boolean; audioUrl?: string } {
+  // Check for audio in parent question-group-wrapper
+  const questionGroup = container.closest('.question-group-wrapper');
+  if (!questionGroup) {
+    return { hasAudio: false };
+  }
+  
+  // Look for audio element in context
+  const audioSelectors = [
+    '.context-audio audio source',
+    '.context-audio source',
+    'audio source',
+    '.plyr audio source',
+  ];
+  
+  for (const selector of audioSelectors) {
+    const source = questionGroup.querySelector<HTMLSourceElement>(selector);
+    if (source?.src) {
+      return { hasAudio: true, audioUrl: source.src };
+    }
+  }
+  
+  // Check for audio element directly
+  const audioEl = questionGroup.querySelector<HTMLAudioElement>('audio');
+  if (audioEl?.src) {
+    return { hasAudio: true, audioUrl: audioEl.src };
+  }
+  
+  return { hasAudio: false };
 }
 
 /**
