@@ -101,7 +101,8 @@ export interface UIConfig {
 
 export interface ProConfig {
   isPro: boolean;
-  devMode: boolean; // Bypass PRO check during development
+  licenseKey?: string;  // License key for PRO unlock
+  devMode: boolean;     // Bypass PRO check during development
   dailyLimit: number;
   usedToday: number;
   lastResetDate: string;
