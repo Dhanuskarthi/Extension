@@ -470,6 +470,7 @@ class OverlayManager {
         z-index: 2147483647;
         display: flex;
         flex-direction: column;
+        align-items: flex-end;
         gap: 8px;
         pointer-events: none;
         font-family: system-ui, -apple-system, sans-serif;
@@ -573,7 +574,8 @@ class OverlayManager {
         transform: translateX(12px) scale(0.95);
         transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         color: #fff;
-        overflow: hidden;
+        overflow: visible;
+        flex-shrink: 0;
       }
       
       .qorva-card.qorva-visible {
