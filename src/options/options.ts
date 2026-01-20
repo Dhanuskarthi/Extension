@@ -227,6 +227,7 @@ async function saveConfig(): Promise<void> {
         accentColor: elements.accentColor.value,
         textColor: elements.textColor.value,
         showExplanation: elements.showExplanation.checked,
+        modalPosition: currentConfig.ui?.modalPosition || 'top-right',
       },
       pro: currentConfig.pro, // Preserve PRO settings
       blacklistDomains: elements.blacklist.value

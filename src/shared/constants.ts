@@ -60,6 +60,7 @@ export const DEFAULT_CONFIG: Config = {
     accentColor: '#a78bfa',
     textColor: '#ffffff',
     showExplanation: false,
+    modalPosition: 'top-right',
   },
   pro: {
     isPro: false,

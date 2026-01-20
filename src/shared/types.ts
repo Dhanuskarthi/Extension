@@ -93,6 +93,7 @@ export interface UIConfig {
   accentColor: string;
   textColor: string;
   showExplanation: boolean;
+  modalPosition: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left';
 }
 
 // ============ PRO Tier Types ============

@@ -414,6 +414,7 @@ class OverlayManager {
         position: fixed;
         top: 12px;
         right: 12px;
+        bottom: 12px;
         z-index: 2147483647;
         display: flex;
         flex-direction: column;
@@ -421,6 +422,20 @@ class OverlayManager {
         pointer-events: none;
         font-family: system-ui, -apple-system, sans-serif;
         font-size: 13px;
+        overflow-y: auto;
+        max-height: calc(100vh - 24px);
+        padding-right: 2px;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255,255,255,0.2) transparent;
+      }
+      
+      #qorva-overlay-container::-webkit-scrollbar {
+        width: 4px;
+      }
+      
+      #qorva-overlay-container::-webkit-scrollbar-thumb {
+        background: rgba(255,255,255,0.2);
+        border-radius: 2px;
       }
       
       .qorva-card {
