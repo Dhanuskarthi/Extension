@@ -184,15 +184,25 @@ if (window.__QORVA_INITIALIZED__) {
               status: 'success',
             });
             
-            if (this.config?.quiz.auto) {
+            // PRO Feature: Auto-click
+            const isPro = this.config?.pro?.isPro || this.config?.pro?.devMode;
+            
+            if (this.config?.quiz.auto && isPro) {
               const result = await selectAnswer(element, answer, this.config.quiz);
               
               if (!result.success) {
                 console.warn('[QORVA] Auto-select failed:', result.error);
               }
+            } else if (this.config?.quiz.auto && !isPro) {
+              // Show PRO upgrade hint once
+              if (!this.processedQuestions.has('pro_hint_shown')) {
+                overlayManager.showToast('🔒 Auto-click requires PRO');
+                this.processedQuestions.add('pro_hint_shown');
+              }
             }
             
-            if (this.config?.quiz.autoSubmit && areAllQuestionsAnswered()) {
+            // PRO Feature: Auto-submit
+            if (this.config?.quiz.autoSubmit && isPro && areAllQuestionsAnswered()) {
               const submitResult = await submitQuiz();
               if (submitResult.success) {
                 overlayManager.showToast('Quiz submitted!');
