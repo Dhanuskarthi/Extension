@@ -173,10 +173,15 @@ class OverlayManager {
     card.className = 'qorva-card qorva-quiz-card';
     card.setAttribute('data-card-id', id);
     
+    // Extract question number from id (e.g., "question-wrapper-9283" -> "Q.9283")
+    const match = id.match(/(\d+)$/);
+    const questionNum = match ? `Q.${match[1]}` : 'Q';
+    
     card.innerHTML = `
       <div class="qorva-card-header">
         <span class="qorva-icon">⚡</span>
         <span class="qorva-title">QORVA</span>
+        <span class="qorva-question-num">${questionNum}</span>
         <button class="qorva-close" aria-label="Close">✕</button>
       </div>
       <div class="qorva-body">
@@ -612,9 +617,18 @@ class OverlayManager {
         color: #fff;
       }
       
+      .qorva-question-num {
+        font-size: 10px;
+        color: rgba(255, 255, 255, 0.5);
+        margin-left: auto;
+        margin-right: 8px;
+        font-weight: 500;
+      }
+      
       .qorva-body {
         padding: 10px;
-        min-height: 24px;
+        min-height: 32px;
+        display: block;
       }
       
       .qorva-loader {
