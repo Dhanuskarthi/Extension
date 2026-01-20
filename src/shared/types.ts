@@ -133,7 +133,12 @@ export type MessageType =
   | 'CFG_GET'
   | 'CFG_SET'
   | 'STATUS_GET'
-  | 'OFFSCREEN_AUDIO_CAPTURE';
+  | 'OFFSCREEN_AUDIO_CAPTURE'
+  | 'LICENSE_CHECK'
+  | 'LICENSE_INCREMENT'
+  | 'LICENSE_ACTIVATE'
+  | 'LICENSE_STATS'
+  | 'OPEN_OPTIONS';
 
 export interface Message<T = unknown> {
   type: MessageType;

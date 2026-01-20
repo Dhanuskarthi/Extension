@@ -13,6 +13,7 @@ import { MSG_TYPES } from '../shared/constants';
 import { configManager } from './config-manager';
 import { llmRouter } from './llm-router';
 import { cacheManager } from './cache-manager';
+import { licenseManager } from './license-manager';
 
 /**
  * Setup message listener
@@ -61,6 +62,22 @@ async function handleMessage(message: Message): Promise<MessageResponse> {
     
     case MSG_TYPES.STATUS_GET:
       return handleStatusGet();
+    
+    case MSG_TYPES.LICENSE_CHECK:
+      return handleLicenseCheck();
+    
+    case MSG_TYPES.LICENSE_INCREMENT:
+      return handleLicenseIncrement();
+    
+    case MSG_TYPES.LICENSE_ACTIVATE:
+      return handleLicenseActivate(message.payload as { licenseKey: string });
+    
+    case MSG_TYPES.LICENSE_STATS:
+      return handleLicenseStats();
+    
+    case 'OPEN_OPTIONS':
+      chrome.runtime.openOptionsPage();
+      return { ok: true };
     
     default:
       return { ok: false, error: `Unknown message type: ${message.type}` };
@@ -176,4 +193,38 @@ async function handleStatusGet(): Promise<MessageResponse> {
       llmQueue: llmStatus,
     },
   };
+}
+
+/**
+ * Handle license check request
+ */
+async function handleLicenseCheck(): Promise<MessageResponse> {
+  const result = await licenseManager.canMakeRequest();
+  return { ok: result.allowed, error: result.reason };
+}
+
+/**
+ * Handle license increment request
+ */
+async function handleLicenseIncrement(): Promise<MessageResponse> {
+  await licenseManager.incrementUsage();
+  return { ok: true };
+}
+
+/**
+ * Handle license activation request
+ */
+async function handleLicenseActivate(
+  payload: { licenseKey: string }
+): Promise<MessageResponse> {
+  const result = await licenseManager.activatePro(payload.licenseKey);
+  return { ok: result.success, error: result.error };
+}
+
+/**
+ * Handle license stats request
+ */
+async function handleLicenseStats(): Promise<MessageResponse> {
+  const stats = await licenseManager.getUsageStats();
+  return { ok: true, data: stats };
 }
