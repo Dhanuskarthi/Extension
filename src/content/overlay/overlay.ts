@@ -14,6 +14,7 @@ interface ErrorState {
 
 class OverlayManager {
   private container: HTMLElement | null = null;
+  private transcribeContainer: HTMLElement | null = null;
   private quizCards: Map<string, HTMLElement> = new Map();
   private audioCard: HTMLElement | null = null;
   private errorState: ErrorState = { lastError: '', count: 0, lastTime: 0 };
@@ -21,17 +22,23 @@ class OverlayManager {
   private errorDismissTimeout = 5000;
 
   /**
-   * Initialize overlay container
+   * Initialize overlay containers (main on right, transcribe on left)
    */
   init(): void {
     if (this.container) return;
     
+    // Main container (right side for quiz cards)
     this.container = document.createElement('div');
     this.container.id = 'qorva-overlay-container';
     this.container.setAttribute('aria-live', 'polite');
     
+    // Transcribe container (left side for transcription results)
+    this.transcribeContainer = document.createElement('div');
+    this.transcribeContainer.id = 'qorva-transcribe-container';
+    
     this.injectStyles();
     document.body.appendChild(this.container);
+    document.body.appendChild(this.transcribeContainer);
     console.log('[QORVA] Overlay manager initialized');
   }
 
@@ -93,6 +100,46 @@ class OverlayManager {
       card.remove();
       this.quizCards.delete(id);
     }
+  }
+
+  /**
+   * Show transcribe result on left side
+   */
+  showTranscribeResult(questionId: string, transcript: string): void {
+    this.init();
+    if (!this.transcribeContainer) return;
+    
+    // Create transcribe card
+    const card = document.createElement('div');
+    card.className = 'qorva-transcribe-card';
+    card.setAttribute('data-question-id', questionId);
+    
+    card.innerHTML = `
+      <div class="qorva-transcribe-header">
+        🎤 <span>Transcript</span>
+        <button class="qorva-transcribe-close">✕</button>
+      </div>
+      <div class="qorva-transcribe-text">${transcript}</div>
+    `;
+    
+    // Close button handler
+    card.querySelector('.qorva-transcribe-close')?.addEventListener('click', () => {
+      card.remove();
+    });
+    
+    this.transcribeContainer.appendChild(card);
+    
+    // Animate in
+    requestAnimationFrame(() => {
+      card.classList.add('qorva-visible');
+    });
+    
+    // Auto-dismiss after 30 seconds
+    setTimeout(() => {
+      if (card.parentElement) {
+        card.remove();
+      }
+    }, 30000);
   }
 
   /**
@@ -436,6 +483,76 @@ class OverlayManager {
       #qorva-overlay-container::-webkit-scrollbar-thumb {
         background: rgba(255,255,255,0.2);
         border-radius: 2px;
+      }
+      
+      #qorva-transcribe-container {
+        position: fixed;
+        top: 12px;
+        left: 12px;
+        bottom: 12px;
+        z-index: 2147483646;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        pointer-events: none;
+        font-family: system-ui, -apple-system, sans-serif;
+        font-size: 13px;
+        max-width: 350px;
+        overflow-y: auto;
+        max-height: calc(100vh - 24px);
+      }
+      
+      .qorva-transcribe-card {
+        pointer-events: auto;
+        background: rgba(15, 25, 35, 0.95);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(100, 200, 255, 0.2);
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 100, 200, 0.2);
+        padding: 12px;
+        color: #fff;
+        opacity: 0;
+        transform: translateX(-12px);
+        transition: all 0.25s ease;
+      }
+      
+      .qorva-transcribe-card.qorva-visible {
+        opacity: 1;
+        transform: translateX(0);
+      }
+      
+      .qorva-transcribe-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+        font-weight: 600;
+        font-size: 12px;
+        color: #60a5fa;
+      }
+      
+      .qorva-transcribe-text {
+        font-size: 12px;
+        line-height: 1.5;
+        color: rgba(255, 255, 255, 0.9);
+        max-height: 150px;
+        overflow-y: auto;
+      }
+      
+      .qorva-transcribe-close {
+        margin-left: auto;
+        background: none;
+        border: none;
+        color: rgba(255, 255, 255, 0.5);
+        cursor: pointer;
+        font-size: 14px;
+        padding: 2px 6px;
+        border-radius: 4px;
+      }
+      
+      .qorva-transcribe-close:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
       }
       
       .qorva-card {

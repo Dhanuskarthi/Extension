@@ -102,10 +102,16 @@ class CacheManager {
   }
 
   /**
-   * Generate cache key for quiz question
+   * Generate cache key for quiz question (includes audio URL for listening questions)
    */
   private generateQuizKey(question: QuizQuestion): string {
-    const content = `${question.text}::${question.choices.join('|')}`;
+    let content = `${question.text}::${question.choices.join('|')}`;
+    
+    // Include audio URL for audio questions to ensure proper caching
+    if (question.meta?.audioUrl) {
+      content += `::audio:${question.meta.audioUrl}`;
+    }
+    
     return `quiz:${hashString(content)}`;
   }
 
