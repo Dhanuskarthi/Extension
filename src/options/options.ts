@@ -184,6 +184,76 @@ function setupEventListeners(): void {
   elements.addGeminiKey?.addEventListener('click', () => {
     addExtraKeyInput('gemini');
   });
+  
+  // License activation handlers
+  const licenseKeyInput = document.getElementById('license-key') as HTMLInputElement;
+  const activateBtn = document.getElementById('activate-license');
+  const deactivateBtn = document.getElementById('deactivate-license');
+  const proTierSpan = document.getElementById('pro-tier');
+  const proUsageSpan = document.getElementById('pro-usage');
+  
+  // Load initial PRO status
+  loadProStatus();
+  
+  activateBtn?.addEventListener('click', async () => {
+    const key = licenseKeyInput?.value.trim().toUpperCase();
+    if (!key) {
+      showStatus('Please enter a license key', 'error');
+      return;
+    }
+    
+    try {
+      const response = await chrome.runtime.sendMessage({
+        type: 'LICENSE_ACTIVATE',
+        payload: { licenseKey: key }
+      });
+      
+      if (response?.ok) {
+        showStatus('✅ PRO activated successfully!', 'success');
+        loadProStatus(); // Refresh UI
+      } else {
+        showStatus(`❌ ${response?.error || 'Activation failed'}`, 'error');
+      }
+    } catch (error) {
+      showStatus('❌ Activation failed', 'error');
+    }
+  });
+  
+  deactivateBtn?.addEventListener('click', async () => {
+    try {
+      await chrome.runtime.sendMessage({
+        type: 'LICENSE_ACTIVATE',
+        payload: { licenseKey: '' } // Empty key to deactivate
+      });
+      showStatus('PRO deactivated', 'success');
+      loadProStatus();
+    } catch {
+      showStatus('Deactivation failed', 'error');
+    }
+  });
+  
+  // Helper to load PRO status
+  async function loadProStatus() {
+    try {
+      const response = await chrome.runtime.sendMessage({ type: 'LICENSE_STATS' });
+      if (response?.ok && response.data) {
+        const { used, limit, isPro } = response.data;
+        
+        if (proTierSpan) {
+          proTierSpan.textContent = isPro ? '💎 PRO Tier' : '🆓 FREE Tier';
+        }
+        if (proUsageSpan) {
+          proUsageSpan.textContent = isPro ? 'Unlimited' : `${used}/${limit} used today`;
+        }
+        if (activateBtn && deactivateBtn) {
+          (activateBtn as HTMLElement).style.display = isPro ? 'none' : 'block';
+          (deactivateBtn as HTMLElement).style.display = isPro ? 'block' : 'none';
+        }
+      }
+    } catch {
+      console.error('[QORVA] Failed to load PRO status');
+    }
+  }
 }
 
 /**

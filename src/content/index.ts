@@ -138,6 +138,7 @@ if (window.__QORVA_INITIALIZED__) {
             const transcript = await this.transcribeAudio(question.meta.audioUrl);
             if (transcript) {
               contextParts.push(`[Audio Transcript]: ${transcript}`);
+              overlayManager.showTranscribeResult(id, transcript);
               console.log(`[QORVA] Transcript added to question: ${id}`);
             }
           }
