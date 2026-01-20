@@ -19,6 +19,8 @@ const elements = {
   claudeSettings: $('claude-settings') as HTMLDivElement,
   geminiKey: $('gemini-key') as HTMLInputElement,
   geminiModel: $('gemini-model') as HTMLSelectElement,
+  geminiExtraKeys: $('gemini-extra-keys') as HTMLDivElement,
+  addGeminiKey: $('add-gemini-key') as HTMLButtonElement,
   openaiKey: $('openai-key') as HTMLInputElement,
   openaiModel: $('openai-model') as HTMLSelectElement,
   claudeKey: $('claude-key') as HTMLInputElement,
@@ -126,6 +128,14 @@ function populateForm(): void {
   elements.geminiKey.value = currentConfig.llm.gemini.apiKey;
   elements.geminiModel.value = currentConfig.llm.gemini.model;
   
+  // Load extra keys
+  if (currentConfig.llm.gemini.apiKeys?.length) {
+    elements.geminiExtraKeys.innerHTML = ''; // Clear existing
+    currentConfig.llm.gemini.apiKeys.forEach(key => {
+      addExtraKeyInput('gemini', key);
+    });
+  }
+  
   // OpenAI
   elements.openaiKey.value = currentConfig.llm.openai.apiKey;
   elements.openaiModel.value = currentConfig.llm.openai.model;
@@ -169,6 +179,11 @@ function setupEventListeners(): void {
   elements.save.addEventListener('click', saveConfig);
   elements.reset.addEventListener('click', resetConfig);
   elements.clearCache.addEventListener('click', clearCache);
+  
+  // Multi-key support: Add backup key button
+  elements.addGeminiKey?.addEventListener('click', () => {
+    addExtraKeyInput('gemini');
+  });
 }
 
 /**
@@ -181,6 +196,47 @@ function showProviderSettings(provider: LLMProvider): void {
 }
 
 /**
+ * Add extra API key input field
+ */
+function addExtraKeyInput(provider: string, value = ''): void {
+  const container = provider === 'gemini' ? elements.geminiExtraKeys : null;
+  if (!container) return;
+  
+  const wrapper = document.createElement('div');
+  wrapper.className = 'extra-key-row';
+  wrapper.style.cssText = 'display: flex; gap: 8px; margin-bottom: 8px;';
+  
+  const input = document.createElement('input');
+  input.type = 'password';
+  input.placeholder = 'Backup API Key...';
+  input.className = 'extra-api-key';
+  input.value = value;
+  input.style.cssText = 'flex: 1;';
+  
+  const removeBtn = document.createElement('button');
+  removeBtn.type = 'button';
+  removeBtn.textContent = '✕';
+  removeBtn.className = 'btn-danger btn-small';
+  removeBtn.style.cssText = 'padding: 4px 8px;';
+  removeBtn.addEventListener('click', () => wrapper.remove());
+  
+  wrapper.appendChild(input);
+  wrapper.appendChild(removeBtn);
+  container.appendChild(wrapper);
+}
+
+/**
+ * Get all extra API keys for a provider
+ */
+function getExtraKeys(provider: string): string[] {
+  const container = provider === 'gemini' ? elements.geminiExtraKeys : null;
+  if (!container) return [];
+  
+  const inputs = container.querySelectorAll('.extra-api-key') as NodeListOf<HTMLInputElement>;
+  return Array.from(inputs).map(i => i.value.trim()).filter(v => v.length > 0);
+}
+
+/**
  * Save configuration
  */
 async function saveConfig(): Promise<void> {
@@ -190,6 +246,7 @@ async function saveConfig(): Promise<void> {
         provider: elements.provider.value as LLMProvider,
         gemini: {
           apiKey: elements.geminiKey.value.trim(),
+          apiKeys: getExtraKeys('gemini'),
           model: elements.geminiModel.value,
         },
         openai: {

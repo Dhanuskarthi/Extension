@@ -36,10 +36,17 @@
         <!-- Gemini -->
         <div id="gemini-settings" class="provider-settings">
           <div class="form-group">
-            <label for="gemini-key">API Key</label>
+            <label for="gemini-key">Primary API Key</label>
             <input type="password" id="gemini-key" placeholder="AI...">
-            <a href="https://makersuite.google.com/app/apikey" target="_blank" class="help-link">Get Free API Key →</a>
+            <a href="https://aistudio.google.com/app/apikey" target="_blank" class="help-link">Get Free API Key →</a>
           </div>
+          
+          <div class="form-group">
+            <label>Backup API Keys <small>(for quota rotation)</small></label>
+            <div id="gemini-extra-keys"></div>
+            <button type="button" id="add-gemini-key" class="btn-secondary btn-small">+ Add Backup Key</button>
+          </div>
+          
           <div class="form-group">
             <label for="gemini-model">Model</label>
             <select id="gemini-model">
