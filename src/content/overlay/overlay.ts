@@ -85,16 +85,13 @@ class OverlayManager {
   }
 
   /**
-   * Remove quiz card
+   * Remove quiz card (instant for fast close)
    */
   removeQuizCard(id: string): void {
     const card = this.quizCards.get(id);
     if (card) {
-      card.classList.remove('qorva-visible');
-      setTimeout(() => {
-        card.remove();
-        this.quizCards.delete(id);
-      }, 300);
+      card.remove();
+      this.quizCards.delete(id);
     }
   }
 
