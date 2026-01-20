@@ -103,6 +103,68 @@ class OverlayManager {
   }
 
   /**
+   * Show quota exhausted modal
+   */
+  showQuotaExhaustedModal(): void {
+    this.init();
+    if (!this.container) return;
+    
+    // Only show once per session
+    if (document.querySelector('.qorva-quota-modal')) return;
+    
+    const modal = document.createElement('div');
+    modal.className = 'qorva-card qorva-quota-modal';
+    modal.innerHTML = `
+      <div class="qorva-card-header">
+        <span class="qorva-icon">⚠️</span>
+        <span class="qorva-title" style="color: #f59e0b;">API Quota Exhausted</span>
+        <button class="qorva-close" aria-label="Close">✕</button>
+      </div>
+      <div class="qorva-body" style="text-align: center;">
+        <p style="margin: 0 0 12px; font-size: 12px; color: rgba(255,255,255,0.7);">
+          All your API keys have reached their daily limit.
+        </p>
+        <div style="display: flex; gap: 8px; justify-content: center;">
+          <button class="qorva-quota-settings" style="
+            padding: 6px 12px;
+            background: #a78bfa;
+            border: none;
+            border-radius: 6px;
+            color: #fff;
+            cursor: pointer;
+            font-size: 11px;
+          ">⚙️ Add More Keys</button>
+          <button class="qorva-quota-dismiss" style="
+            padding: 6px 12px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            color: #fff;
+            cursor: pointer;
+            font-size: 11px;
+          ">Wait for Reset</button>
+        </div>
+        <p style="margin: 12px 0 0; font-size: 10px; color: rgba(255,255,255,0.4);">
+          Free tier resets daily at midnight.
+        </p>
+      </div>
+    `;
+    
+    this.container.appendChild(modal);
+    
+    // Animate in
+    requestAnimationFrame(() => modal.classList.add('qorva-visible'));
+    
+    // Event listeners
+    modal.querySelector('.qorva-close')?.addEventListener('click', () => modal.remove());
+    modal.querySelector('.qorva-quota-dismiss')?.addEventListener('click', () => modal.remove());
+    modal.querySelector('.qorva-quota-settings')?.addEventListener('click', () => {
+      chrome.runtime.sendMessage({ type: 'OPEN_OPTIONS' });
+      modal.remove();
+    });
+  }
+
+  /**
    * Show transcribe result on left side
    */
   showTranscribeResult(questionId: string, transcript: string): void {
