@@ -7,7 +7,8 @@
 export type LLMProvider = 'gemini' | 'openai' | 'claude';
 
 export interface LLMProviderConfig {
-  apiKey: string;
+  apiKey: string;           // Primary key (legacy support)
+  apiKeys?: string[];       // Multiple keys for rotation
   model: string;
   baseURL?: string;
 }

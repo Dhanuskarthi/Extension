@@ -64,8 +64,8 @@ export const DEFAULT_CONFIG: Config = {
   },
   pro: {
     isPro: false,
-    devMode: true, // Set to false for production release
-    dailyLimit: 50, // Free tier limit
+    devMode: false, // Production mode - enforces limits
+    dailyLimit: 10, // Free tier: 10 questions/day
     usedToday: 0,
     lastResetDate: new Date().toDateString(),
   },

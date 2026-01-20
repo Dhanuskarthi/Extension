@@ -234,32 +234,76 @@ class LLMRouter {
   }
 
   /**
-   * Call LLM API based on configured provider
+   * Call LLM API based on configured provider (with multi-key rotation)
    */
   private async callLLM(prompt: string): Promise<string> {
     const config = await configManager.get();
     const provider = config.llm.provider;
     const providerConfig = config.llm[provider];
     
-    if (!providerConfig?.apiKey) {
+    // Build keys array: primary key + additional keys
+    const keys: string[] = [];
+    if (providerConfig?.apiKey) keys.push(providerConfig.apiKey);
+    if (providerConfig?.apiKeys?.length) {
+      providerConfig.apiKeys.forEach(k => {
+        if (k && !keys.includes(k)) keys.push(k);
+      });
+    }
+    
+    if (keys.length === 0) {
       throw new Error(`API key not configured for ${provider}`);
     }
     
-    switch (provider) {
-      case 'gemini':
-        return this.callGemini(prompt, providerConfig.apiKey, providerConfig.model);
-      case 'openai':
-        return this.callOpenAI(
-          prompt,
-          providerConfig.apiKey,
-          providerConfig.model,
-          providerConfig.baseURL
-        );
-      case 'claude':
-        return this.callClaude(prompt, providerConfig.apiKey, providerConfig.model);
-      default:
-        throw new Error(`Unsupported provider: ${provider}`);
+    // Try each key until one works
+    let lastError: Error | null = null;
+    
+    for (const apiKey of keys) {
+      try {
+        switch (provider) {
+          case 'gemini':
+            return await this.callGemini(prompt, apiKey, providerConfig.model);
+          case 'openai':
+            return await this.callOpenAI(
+              prompt,
+              apiKey,
+              providerConfig.model,
+              providerConfig.baseURL
+            );
+          case 'claude':
+            return await this.callClaude(prompt, apiKey, providerConfig.model);
+          default:
+            throw new Error(`Unsupported provider: ${provider}`);
+        }
+      } catch (error) {
+        lastError = error as Error;
+        
+        // Only rotate on quota/rate limit errors (429)
+        if (this.isQuotaError(error)) {
+          console.log(`[QORVA] API key exhausted, trying next key...`);
+          continue;
+        }
+        
+        // For other errors, throw immediately
+        throw error;
+      }
     }
+    
+    // All keys exhausted
+    throw new Error(`All API keys exhausted: ${lastError?.message || 'quota limit'}`);
+  }
+
+  /**
+   * Check if error is a quota/rate limit error
+   */
+  private isQuotaError(error: unknown): boolean {
+    if (error instanceof Error) {
+      const msg = error.message.toLowerCase();
+      return msg.includes('429') ||
+             msg.includes('quota') ||
+             msg.includes('rate limit') ||
+             msg.includes('exhausted');
+    }
+    return false;
   }
 
   /**
