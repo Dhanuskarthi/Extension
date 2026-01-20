@@ -382,18 +382,13 @@ class OverlayManager {
     
     if (result && result.text) {
       console.log('[QORVA] Transcription result:', result.text);
-      this.showToast('✅ Transcription complete! Check console for text.');
+      this.showToast('✅ Transcription complete!');
       
       // Store transcript for potential use in LLM query
       this.storeTranscript(questionId, result.text);
       
-      // Show transcript in a toast (first 100 chars)
-      const preview = result.text.length > 100 
-        ? result.text.substring(0, 97) + '...' 
-        : result.text;
-      setTimeout(() => {
-        this.showToast(`📝 "${preview}"`);
-      }, 2000);
+      // Show transcript in the left column
+      this.showTranscribeResult(questionId, result.text);
     } else {
       this.showToast('❌ Transcription failed. Check console for details.');
     }
