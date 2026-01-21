@@ -212,17 +212,29 @@
             <span id="pro-usage" style="font-size: 12px; opacity: 0.7;">0/10 used today</span>
           </div>
         </div>
-        <div class="form-group">
-          <label for="license-key">License Key</label>
+        
+        <!-- Upgrade Button (shown for FREE users) -->
+        <div id="upgrade-section" style="text-align: center; margin: 16px 0;">
+          <a href="https://qorva.lemonsqueezy.com/buy/your-product-id" 
+             target="_blank"
+             class="btn btn-primary"
+             style="display: inline-block; width: 100%; padding: 14px; font-size: 16px; text-decoration: none; background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%); border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer;">
+            🚀 Upgrade to PRO - $4.99
+          </a>
+          <p style="font-size: 11px; opacity: 0.6; margin-top: 8px;">
+            ♾️ Unlimited • 🎤 Audio • 🖼️ Image • 🌐 All Languages
+          </p>
+        </div>
+        
+        <!-- License Key Input -->
+        <div class="form-group" style="margin-top: 16px;">
+          <label for="license-key" style="font-size: 12px; opacity: 0.7;">Already have a license key?</label>
           <input type="text" id="license-key" placeholder="XXXX-XXXX-XXXX-XXXX" style="text-transform: uppercase; font-family: monospace;">
         </div>
         <div style="display: flex; gap: 8px;">
-          <button type="button" id="activate-license" class="btn btn-primary" style="flex: 1;">✓ Activate</button>
+          <button type="button" id="activate-license" class="btn btn-secondary" style="flex: 1;">✓ Activate</button>
           <button type="button" id="deactivate-license" class="btn btn-secondary" style="flex: 1; display: none;">✕ Deactivate</button>
         </div>
-        <p style="font-size: 11px; opacity: 0.6; margin-top: 8px; text-align: center;">
-          Get license key at <a href="#" target="_blank" style="color: #a78bfa;">qorva.co/pro</a>
-        </p>
       </section>
     </main>
 

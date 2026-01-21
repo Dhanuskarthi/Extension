@@ -52,7 +52,12 @@ if (window.__QORVA_INITIALIZED__) {
       }
       
       if (this.config?.audio.enabled) {
-        this.startAudioQA();
+        // Audio is PRO-only feature
+        if (this.config.pro?.isPro || this.config.pro?.devMode) {
+          this.startAudioQA();
+        } else {
+          console.log('[QORVA] Audio QA requires PRO tier');
+        }
       }
       
       this.setupMessageListener();

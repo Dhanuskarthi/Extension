@@ -357,6 +357,22 @@ class OverlayManager {
    * Handle transcribe button click
    */
   private async handleTranscribeClick(audioUrl: string, questionId: string): Promise<void> {
+    // Check PRO status first - Audio transcription is PRO-only
+    try {
+      const response = await chrome.runtime.sendMessage({ type: 'CFG_GET' });
+      if (response?.ok && response.data) {
+        const config = response.data;
+        if (!config.pro?.isPro && !config.pro?.devMode) {
+          this.showToast('🔒 Audio transcription requires PRO');
+          // Show upgrade prompt
+          chrome.runtime.sendMessage({ type: 'OPEN_OPTIONS' });
+          return;
+        }
+      }
+    } catch (error) {
+      console.error('[QORVA] Failed to check PRO status:', error);
+    }
+    
     // Dynamic import to avoid loading Whisper until needed
     const { transcribeFromUrl, getWhisperStatus } = await import('../audio/whisper');
     
