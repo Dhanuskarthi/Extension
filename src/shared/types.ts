@@ -89,12 +89,19 @@ export interface CacheEntry<T> {
 
 // ============ Config Types ============
 
+export interface TranslationConfig {
+  enabled: boolean;
+  language: string;           // 'vi', 'th', 'es', 'zh', 'ja', 'ko', 'fr'
+  scope: 'answer' | 'full';   // FREE: answer, PRO: full
+}
+
 export interface UIConfig {
   theme: 'dark' | 'light' | 'system';
   accentColor: string;
   textColor: string;
   showExplanation: boolean;
   modalPosition: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left';
+  translation: TranslationConfig;
 }
 
 // ============ PRO Tier Types ============

@@ -42,6 +42,10 @@ const elements = {
   accentColor: $('accent-color') as HTMLInputElement,
   textColor: $('text-color') as HTMLInputElement,
   
+  // Translation
+  translationEnabled: $('translation-enabled') as HTMLInputElement,
+  translationLanguage: $('translation-language') as HTMLSelectElement,
+  
   // Cache
   cacheEnabled: $('cache-enabled') as HTMLInputElement,
   cacheTtl: $('cache-ttl') as HTMLInputElement,
@@ -159,6 +163,10 @@ function populateForm(): void {
   elements.showExplanation.checked = currentConfig.ui?.showExplanation || false;
   elements.accentColor.value = currentConfig.ui?.accentColor || '#a78bfa';
   elements.textColor.value = currentConfig.ui?.textColor || '#ffffff';
+  
+  // Translation
+  elements.translationEnabled.checked = currentConfig.ui?.translation?.enabled || false;
+  elements.translationLanguage.value = currentConfig.ui?.translation?.language || 'vi';
   
   // Cache
   elements.cacheEnabled.checked = currentConfig.cache.enabled;
@@ -358,6 +366,11 @@ async function saveConfig(): Promise<void> {
         textColor: elements.textColor.value,
         showExplanation: elements.showExplanation.checked,
         modalPosition: currentConfig.ui?.modalPosition || 'top-right',
+        translation: {
+          enabled: elements.translationEnabled.checked,
+          language: elements.translationLanguage.value,
+          scope: currentConfig.pro?.isPro ? 'full' : 'answer', // PRO gets full, FREE gets answer only
+        },
       },
       pro: currentConfig.pro, // Preserve PRO settings
       blacklistDomains: elements.blacklist.value

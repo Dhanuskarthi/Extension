@@ -21,6 +21,19 @@ export const MSG_TYPES = {
   LICENSE_STATS: 'LICENSE_STATS',
 } as const;
 
+// ============ Supported Languages ============
+
+export const SUPPORTED_LANGUAGES = [
+  { code: 'vi', name: 'Tiếng Việt', free: true },
+  { code: 'th', name: 'ไทย', free: false },
+  { code: 'es', name: 'Español', free: false },
+  { code: 'zh', name: '中文', free: false },
+  { code: 'ja', name: '日本語', free: false },
+  { code: 'ko', name: '한국어', free: false },
+  { code: 'fr', name: 'Français', free: false },
+  { code: 'id', name: 'Bahasa Indonesia', free: false },
+] as const;
+
 // ============ Default Configuration ============
 
 export const DEFAULT_CONFIG: Config = {
@@ -66,6 +79,11 @@ export const DEFAULT_CONFIG: Config = {
     textColor: '#ffffff',
     showExplanation: false,
     modalPosition: 'top-right',
+    translation: {
+      enabled: false,
+      language: 'vi',
+      scope: 'answer', // FREE tier default
+    },
   },
   pro: {
     isPro: false,
@@ -222,7 +240,7 @@ export const LLM_ENDPOINTS = {
 
 export const PROMPTS = {
   quiz: `You are a quiz AI. Return ONLY valid JSON:
-{"answer_index": <INTEGER>, "explanation": "<brief explanation>"}
+{"answer_index": <INTEGER>, "explanation": "<brief explanation>"{{#translate}}, "translation": {"answer": "<translated answer>", "explanation": "<translated explanation>"}{{/translate}}}
 
 Question: {{question_text}}
 
@@ -233,7 +251,8 @@ IMPORTANT RULES:
 - answer_index MUST be the NUMBER in parentheses before the correct choice
 - If choices are (0), (1), (2), (3) then valid indices are 0, 1, 2, 3
 - Return the NUMBER, not a letter
-- DO NOT return text outside of JSON`,
+- DO NOT return text outside of JSON
+{{#translate}}- Also translate the answer and explanation to {{language}}{{/translate}}`,
 
   audio: `Question: "{{transcript}}"
 Answer briefly and accurately. Pure JSON only:
