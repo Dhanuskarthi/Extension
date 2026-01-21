@@ -137,6 +137,7 @@ export type MessageType =
   | 'LICENSE_CHECK'
   | 'LICENSE_INCREMENT'
   | 'LICENSE_ACTIVATE'
+  | 'LICENSE_DEACTIVATE'
   | 'LICENSE_STATS'
   | 'OPEN_OPTIONS';
 

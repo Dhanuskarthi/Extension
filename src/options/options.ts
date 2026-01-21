@@ -221,12 +221,15 @@ function setupEventListeners(): void {
   
   deactivateBtn?.addEventListener('click', async () => {
     try {
-      await chrome.runtime.sendMessage({
-        type: 'LICENSE_ACTIVATE',
-        payload: { licenseKey: '' } // Empty key to deactivate
+      const response = await chrome.runtime.sendMessage({
+        type: 'LICENSE_DEACTIVATE'
       });
-      showStatus('PRO deactivated', 'success');
-      loadProStatus();
+      if (response?.ok) {
+        showStatus('PRO deactivated', 'success');
+        loadProStatus(); // Refresh UI
+      } else {
+        showStatus('Deactivation failed', 'error');
+      }
     } catch {
       showStatus('Deactivation failed', 'error');
     }

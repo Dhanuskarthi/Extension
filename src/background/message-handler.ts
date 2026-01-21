@@ -72,6 +72,9 @@ async function handleMessage(message: Message): Promise<MessageResponse> {
     case MSG_TYPES.LICENSE_ACTIVATE:
       return handleLicenseActivate(message.payload as { licenseKey: string });
     
+    case MSG_TYPES.LICENSE_DEACTIVATE:
+      return handleLicenseDeactivate();
+    
     case MSG_TYPES.LICENSE_STATS:
       return handleLicenseStats();
     
@@ -219,6 +222,14 @@ async function handleLicenseActivate(
 ): Promise<MessageResponse> {
   const result = await licenseManager.activatePro(payload.licenseKey);
   return { ok: result.success, error: result.error };
+}
+
+/**
+ * Handle license deactivation request
+ */
+async function handleLicenseDeactivate(): Promise<MessageResponse> {
+  await licenseManager.deactivatePro();
+  return { ok: true };
 }
 
 /**
