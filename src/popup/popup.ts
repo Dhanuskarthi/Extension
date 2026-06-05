@@ -77,7 +77,7 @@ function setupEventListeners(): void {
     // Send to content script
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (tab?.id) {
-      chrome.tabs.sendMessage(tab.id, { type: 'TOGGLE_QUIZ' });
+      chrome.tabs.sendMessage(tab.id, { type: 'TOGGLE_QUIZ' }).catch(() => {});
     }
     
     // Update config
@@ -99,7 +99,7 @@ function setupEventListeners(): void {
     // Send to content script
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (tab?.id) {
-      chrome.tabs.sendMessage(tab.id, { type: 'TOGGLE_AUDIO' });
+      chrome.tabs.sendMessage(tab.id, { type: 'TOGGLE_AUDIO' }).catch(() => {});
     }
     
     // Update config
@@ -116,7 +116,7 @@ function setupEventListeners(): void {
   elements.rescanBtn.addEventListener('click', async () => {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (tab?.id) {
-      chrome.tabs.sendMessage(tab.id, { type: 'RESCAN' });
+      chrome.tabs.sendMessage(tab.id, { type: 'RESCAN' }).catch(() => {});
     }
     window.close();
   });
