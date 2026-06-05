@@ -11,7 +11,7 @@
 [![Vite](https://img.shields.io/badge/Vite-5.4-646CFF?style=for-the-badge&logo=vite)](https://vitejs.dev/)
 [![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)](LICENSE)
 
-**[English](README.md) • [Tiếng Việt](README.vi.md)**
+[English](README.md) 
 
 [✨ Features](#-features) • [🚀 Quick Start](#-quick-start) • [📚 Documentation](#-documentation) • [🤝 Contributing](#-author)
 
@@ -60,89 +60,6 @@ QORVA is a powerful Chrome extension that leverages AI to provide **instant quiz
 
 ---
 
-## 🚀 Quick Start
-
-### Prerequisites
-
-- Node.js 16+ and npm
-- Chrome browser with Developer Mode enabled
-
-### Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/iamnguyenvu/qorva-extension.git
-cd qorva-extension
-
-# Install dependencies
-npm install
-
-# Build the extension
-npm run build
-```
-
-### Load Extension
-
-1. Open `chrome://extensions/` in Chrome
-2. Enable **Developer mode** (top-right toggle)
-3. Click **Load unpacked**
-4. Select the `dist` folder from the project
-
-### Configuration
-
-1. Click the QORVA extension icon in Chrome toolbar
-2. Navigate to **Options**
-3. Enter your **Gemini API Key** ([Get free key](https://makersuite.google.com/app/apikey))
-4. Customize settings as needed
-5. Click **Save**
-
----
-
-## 📚 Documentation
-
-### 🛠️ Development
-
-```bash
-# Start development server with hot reload
-npm run dev
-
-# Run TypeScript type checking
-npm run typecheck
-
-# Lint code with ESLint
-npm run lint
-
-# Build for production
-npm run build
-```
-
-### 📁 Project Structure
-
-```
-qorva-extension/
-├── src/
-│   ├── background/          # Service worker & API routing
-│   │   ├── index.ts        # Main entry point
-│   │   ├── llm-router.ts   # LLM API routing (Gemini/OpenAI/Claude)
-│   │   ├── config-manager.ts  # Chrome storage management
-│   │   └── cache-manager.ts   # Answer caching with TTL
-│   ├── content/            # Content scripts
-│   │   ├── index.ts       # Content script entry
-│   │   ├── quiz/          # Quiz automation
-│   │   │   ├── detector.ts   # DOM scanning with MutationObserver
-│   │   │   ├── parser.ts     # Question/choice extraction
-│   │   │   ├── selector.ts   # Auto-selection logic
-│   │   │   └── submitter.ts  # Submit button detection
-│   │   ├── audio/         # Voice capture & STT
-│   │   └── overlay/       # UI overlay manager
-│   ├── options/           # Settings page
-│   ├── popup/             # Extension popup
-│   └── shared/            # Shared types & utilities
-├── public/                # Static assets
-├── manifest.json         # Chrome Extension Manifest V3
-└── vite.config.ts        # Vite build configuration
-```
-
 ### 🔧 Supported Platforms
 
 | Platform | Question Detection | Auto-Select | Submit Detection | Status |
@@ -153,13 +70,6 @@ qorva-extension/
 | **Canvas LMS** | ✅ | ✅ | ✅ | Fully Tested |
 | **Blackboard** | ✅ | ✅ | ⚠️ | Beta |
 
-### 🤖 AI Provider Configuration
-
-| Provider | Free Tier | Recommended Model | API Key Required |
-|----------|-----------|-------------------|------------------|
-| **Google Gemini** ⭐ | ✅ 250 requests/day | `gemini-2.5-flash` | [Get Key](https://makersuite.google.com/app/apikey) |
-| **OpenAI** | ❌ Paid only | `gpt-4o-mini` | [Get Key](https://platform.openai.com/api-keys) |
-| **Anthropic Claude** | ❌ Paid only | `claude-3-haiku` | [Get Key](https://console.anthropic.com/) |
 
 ### ⚙️ Settings Reference
 
@@ -203,43 +113,5 @@ All major issues have been resolved in the latest version:
 - **API Latency**: 200-800ms (depends on provider)
 
 ---
-
-## 🤝 Author
-
-<div align="center">
-
-**Nguyen Vu**
-
-[![GitHub](https://img.shields.io/badge/GitHub-iamnguyenvu-181717?style=for-the-badge&logo=github)](https://github.com/iamnguyenvu)
-[![Email](https://img.shields.io/badge/Email-iamgnuyenvu.gm@gmail.com-D14836?style=for-the-badge&logo=gmail)](mailto:iamgnuyenvu.gm@gmail.com)
-
-</div>
-
----
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-```
-MIT License
-
-Copyright (c) 2024 Nguyen Vu
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions...
-```
-
----
-
-<div align="center">
-
-### ⭐ Star this repo if QORVA helped you!
-
-**Made with ❤️ by [Nguyen Vu](https://github.com/iamnguyenvu)**
 
 </div>
