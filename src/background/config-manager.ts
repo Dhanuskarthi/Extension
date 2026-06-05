@@ -150,6 +150,9 @@ class ConfigManager {
       case 'claude':
         // Anthropic keys start with 'sk-ant-'
         return key.startsWith('sk-ant-') && key.length >= 40;
+      case 'groq':
+        // Groq keys start with 'gsk_'
+        return key.startsWith('gsk_') && key.length >= 40;
       default:
         return key.length >= 10;
     }

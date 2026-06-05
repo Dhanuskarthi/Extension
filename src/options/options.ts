@@ -17,6 +17,7 @@ const elements = {
   geminiSettings: $('gemini-settings') as HTMLDivElement,
   openaiSettings: $('openai-settings') as HTMLDivElement,
   claudeSettings: $('claude-settings') as HTMLDivElement,
+  groqSettings: $('groq-settings') as HTMLDivElement,
   geminiKey: $('gemini-key') as HTMLInputElement,
   geminiModel: $('gemini-model') as HTMLSelectElement,
   geminiExtraKeys: $('gemini-extra-keys') as HTMLDivElement,
@@ -25,6 +26,8 @@ const elements = {
   openaiModel: $('openai-model') as HTMLSelectElement,
   claudeKey: $('claude-key') as HTMLInputElement,
   claudeModel: $('claude-model') as HTMLSelectElement,
+  groqKey: $('groq-key') as HTMLInputElement,
+  groqModel: $('groq-model') as HTMLSelectElement,
   
   // Quiz
   quizAuto: $('quiz-auto') as HTMLInputElement,
@@ -147,6 +150,10 @@ function populateForm(): void {
   // Claude
   elements.claudeKey.value = currentConfig.llm.claude.apiKey;
   elements.claudeModel.value = currentConfig.llm.claude.model;
+  
+  // Groq
+  elements.groqKey.value = currentConfig.llm.groq?.apiKey || '';
+  elements.groqModel.value = currentConfig.llm.groq?.model || 'llama-3.3-70b-versatile';
   
   // Quiz
   elements.quizAuto.checked = currentConfig.quiz.auto;
@@ -274,6 +281,7 @@ function showProviderSettings(provider: LLMProvider): void {
   elements.geminiSettings.classList.toggle('hidden', provider !== 'gemini');
   elements.openaiSettings.classList.toggle('hidden', provider !== 'openai');
   elements.claudeSettings.classList.toggle('hidden', provider !== 'claude');
+  elements.groqSettings.classList.toggle('hidden', provider !== 'groq');
 }
 
 /**
@@ -338,6 +346,10 @@ async function saveConfig(): Promise<void> {
         claude: {
           apiKey: elements.claudeKey.value.trim(),
           model: elements.claudeModel.value,
+        },
+        groq: {
+          apiKey: elements.groqKey.value.trim(),
+          model: elements.groqModel.value,
         },
       },
       quiz: {

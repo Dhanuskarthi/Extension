@@ -271,6 +271,8 @@ class LLMRouter {
             );
           case 'claude':
             return await this.callClaude(prompt, apiKey, providerConfig.model);
+          case 'groq':
+            return await this.callGroq(prompt, apiKey, providerConfig.model);
           default:
             throw new Error(`Unsupported provider: ${provider}`);
         }
@@ -416,6 +418,42 @@ class LLMRouter {
     
     const data = await response.json();
     return data.content?.[0]?.text || '';
+  }
+
+  /**
+   * Call Groq API
+   */
+  private async callGroq(
+    prompt: string,
+    apiKey: string,
+    model: string
+  ): Promise<string> {
+    const response = await fetch(LLM_ENDPOINTS.groq, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model,
+        messages: [
+          {
+            role: 'user',
+            content: prompt,
+          },
+        ],
+        temperature: 0.3,
+        max_tokens: 1024,
+      }),
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error?.message || `Groq API error: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return data.choices?.[0]?.message?.content || '';
   }
 
   /**

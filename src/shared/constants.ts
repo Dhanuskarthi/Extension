@@ -52,6 +52,10 @@ export const DEFAULT_CONFIG: Config = {
       apiKey: '',
       model: 'claude-3-haiku-20240307',
     },
+    groq: {
+      apiKey: '',
+      model: 'llama-3.3-70b-versatile',
+    },
   },
   quiz: {
     auto: true,
@@ -234,6 +238,7 @@ export const LLM_ENDPOINTS = {
   gemini: 'https://generativelanguage.googleapis.com/v1/models',
   openai: 'https://api.openai.com/v1/chat/completions',
   claude: 'https://api.anthropic.com/v1/messages',
+  groq: 'https://api.groq.com/openai/v1/chat/completions',
 };
 
 // ============ LLM Prompt Templates ============
