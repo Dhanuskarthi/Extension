@@ -19,30 +19,7 @@ class LicenseManager {
    * Check if user can make a request (daily limit check)
    */
   async canMakeRequest(): Promise<{ allowed: boolean; reason?: string }> {
-    const config = await configManager.get();
-    const pro = config.pro;
-
-    // PRO or devMode bypasses limits
-    if (pro.isPro || pro.devMode) {
-      return { allowed: true };
-    }
-
-    // Check if we need to reset daily counter
-    const today = new Date().toDateString();
-    if (pro.lastResetDate !== today) {
-      await this.resetDailyUsage();
-      return { allowed: true };
-    }
-
-    // Check if under limit
-    if (pro.usedToday < pro.dailyLimit) {
-      return { allowed: true };
-    }
-
-    return { 
-      allowed: false, 
-      reason: `Daily limit reached (${pro.usedToday}/${pro.dailyLimit})` 
-    };
+    return { allowed: true };
   }
 
   /**

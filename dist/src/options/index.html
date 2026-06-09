@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QORVA - Settings</title>
+  <script type="module" crossorigin src="/assets/options-D3OtM8dV.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/modulepreload-polyfill-B5Qt9EMX.js">
+  <link rel="modulepreload" crossorigin href="/assets/constants-EoRpzPSM.js">
+  <link rel="stylesheet" crossorigin href="/assets/options-CfUJt10k.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">
+        <span class="logo-icon">⚡</span>
+        <h1>QORVA</h1>
+      </div>
+      <div class="theme-toggle">
+        <button class="theme-btn" data-theme="light" title="Light">☀️</button>
+        <button class="theme-btn active" data-theme="dark" title="Dark">🌙</button>
+        <button class="theme-btn" data-theme="system" title="System">💻</button>
+      </div>
+    </header>
+
+    <main>
+      <!-- LLM Provider -->
+      <section class="section">
+        <h2>🤖 AI Provider</h2>
+        <div class="form-group">
+          <label for="provider">Provider</label>
+          <select id="provider">
+            <option value="gemini">Gemini (Free)</option>
+            <option value="openai">OpenAI</option>
+            <option value="claude">Claude</option>
+            <option value="groq">Groq</option>
+          </select>
+        </div>
+
+        <!-- Gemini -->
+        <div id="gemini-settings" class="provider-settings">
+          <div class="form-group">
+            <label for="gemini-key">Primary API Key</label>
+            <input type="password" id="gemini-key" placeholder="AI...">
+            <a href="https://aistudio.google.com/app/apikey" target="_blank" class="help-link">Get Free API Key →</a>
+          </div>
+          
+          <div class="form-group">
+            <label>Backup API Keys <small>(for quota rotation)</small></label>
+            <div id="gemini-extra-keys"></div>
+            <button type="button" id="add-gemini-key" class="btn-secondary btn-small">+ Add Backup Key</button>
+          </div>
+          
+          <div class="form-group">
+            <label for="gemini-model">Model</label>
+            <select id="gemini-model">
+              <option value="gemini-2.5-flash">2.5 Flash (Recommended)</option>
+              <option value="gemini-2.5-flash-lite">2.5 Flash Lite</option>
+              <option value="gemini-2.0-flash">2.0 Flash</option>
+              <option value="gemini-1.5-flash">1.5 Flash</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- OpenAI -->
+        <div id="openai-settings" class="provider-settings hidden">
+          <div class="form-group">
+            <label for="openai-key">API Key</label>
+            <input type="password" id="openai-key" placeholder="sk-...">
+          </div>
+          <div class="form-group">
+            <label for="openai-model">Model</label>
+            <select id="openai-model">
+              <option value="gpt-4o-mini">GPT-4o Mini</option>
+              <option value="gpt-4o">GPT-4o</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Claude -->
+        <div id="claude-settings" class="provider-settings hidden">
+          <div class="form-group">
+            <label for="claude-key">API Key</label>
+            <input type="password" id="claude-key" placeholder="sk-ant-...">
+          </div>
+          <div class="form-group">
+            <label for="claude-model">Model</label>
+            <select id="claude-model">
+              <option value="claude-3-haiku-20240307">Claude 3 Haiku</option>
+              <option value="claude-3-sonnet-20240229">Claude 3 Sonnet</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Groq -->
+        <div id="groq-settings" class="provider-settings hidden">
+          <div class="form-group">
+            <label for="groq-key">API Key</label>
+            <input type="password" id="groq-key" placeholder="gsk_...">
+            <a href="https://console.groq.com/keys" target="_blank" class="help-link">Get Groq API Key →</a>
+          </div>
+          <div class="form-group">
+            <label for="groq-model">Model</label>
+            <select id="groq-model">
+              <option value="llama-3.3-70b-versatile">Llama 3.3 70B Versatile (Recommended)</option>
+              <option value="llama-3.1-8b-instant">Llama 3.1 8B Instant</option>
+              <option value="mixtral-8x7b-32768">Mixtral 8x7B 32768</option>
+              <option value="gemma2-9b-it">Gemma 2 9B IT</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <!-- Quiz -->
+      <section class="section">
+        <h2>📝 Quiz Automation</h2>
+        <div class="toggle-group form-group">
+          <label>
+            <input type="checkbox" id="quiz-auto" checked>
+            Auto-detect & answer questions
+          </label>
+        </div>
+        <div class="toggle-group form-group">
+          <label>
+            <input type="checkbox" id="quiz-submit">
+            Auto-submit when done
+          </label>
+        </div>
+        <div class="form-group">
+          <label>Selection delay (ms)</label>
+          <div class="range-group">
+            <input type="number" id="delay-min" min="0" max="500" value="50">
+            <span>–</span>
+            <input type="number" id="delay-max" min="0" max="1000" value="200">
+          </div>
+        </div>
+      </section>
+
+      <!-- Audio -->
+      <section class="section">
+        <h2>🎤 Audio QA</h2>
+        <div class="toggle-group form-group">
+          <label>
+            <input type="checkbox" id="audio-enabled">
+            Enable voice recognition
+          </label>
+        </div>
+        <div class="toggle-group form-group">
+          <label>
+            <input type="checkbox" id="audio-tts" checked>
+            Text-to-speech answers
+          </label>
+        </div>
+        <div class="toggle-group form-group">
+          <label>
+            <input type="checkbox" id="audio-copy">
+            Auto-copy to clipboard
+          </label>
+        </div>
+      </section>
+
+      <!-- Display Settings -->
+      <section class="section">
+        <h2>🎨 Display</h2>
+        <div class="toggle-group form-group">
+          <label>
+            <input type="checkbox" id="show-explanation">
+            Show answer explanation
+          </label>
+        </div>
+        <div class="form-group">
+          <label for="accent-color">Accent Color</label>
+          <input type="color" id="accent-color" value="#a78bfa">
+        </div>
+        <div class="form-group">
+          <label for="text-color">Text Color</label>
+          <input type="color" id="text-color" value="#ffffff">
+        </div>
+      </section>
+
+      <!-- Translation Settings -->
+      <section class="section">
+        <h2>🌐 Translation</h2>
+        <div class="toggle-group form-group">
+          <label>
+            <input type="checkbox" id="translation-enabled">
+            Enable translation
+          </label>
+        </div>
+        <div class="form-group">
+          <label for="translation-language">Translate to</label>
+          <select id="translation-language">
+            <option value="vi">Tiếng Việt</option>
+            <option value="th">ไทย 🔒</option>
+            <option value="es">Español 🔒</option>
+            <option value="zh">中文 🔒</option>
+            <option value="ja">日本語 🔒</option>
+            <option value="ko">한국어 🔒</option>
+            <option value="fr">Français 🔒</option>
+            <option value="id">Bahasa Indonesia 🔒</option>
+          </select>
+        </div>
+        <p style="font-size: 12px; color: #9ca3af; margin-top: 8px;">
+          🆓 FREE: Answer only (Vietnamese) | 💎 PRO: Full translation (all languages)
+        </p>
+      </section>
+      <section class="section">
+        <h2>⚙️ Advanced</h2>
+        <div class="inline-row">
+          <div class="toggle-group form-group">
+            <label>
+              <input type="checkbox" id="cache-enabled" checked>
+              Cache answers
+            </label>
+          </div>
+          <div class="form-group">
+            <input type="number" id="cache-ttl" min="1" max="168" value="24" style="width:50px">
+            <small>hours</small>
+          </div>
+          <button type="button" id="clear-cache" class="btn btn-secondary">Clear</button>
+        </div>
+        <div class="form-group" style="margin-top:10px">
+          <label for="blacklist">Blacklisted domains</label>
+          <textarea id="blacklist" rows="2" placeholder="example.com"></textarea>
+        </div>
+      </section>
+
+      <!-- PRO License -->
+      <section class="section">
+        <h2>💎 PRO License</h2>
+        <div id="pro-status" class="pro-status-box" style="background: rgba(167,139,250,0.1); border: 1px solid rgba(167,139,250,0.3); border-radius: 8px; padding: 12px; margin-bottom: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span id="pro-tier" style="font-weight: 600;">🆓 FREE Tier</span>
+            <span id="pro-usage" style="font-size: 12px; opacity: 0.7;">0/10 used today</span>
+          </div>
+        </div>
+        
+        <!-- Upgrade Button (shown for FREE users) -->
+        <div id="upgrade-section" style="text-align: center; margin: 16px 0;">
+          <a href="https://qorva.lemonsqueezy.com/buy/your-product-id" 
+             target="_blank"
+             class="btn btn-primary"
+             style="display: inline-block; width: 100%; padding: 14px; font-size: 16px; text-decoration: none; background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%); border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer;">
+            🚀 Upgrade to PRO - $4.99
+          </a>
+          <p style="font-size: 11px; opacity: 0.6; margin-top: 8px;">
+            ♾️ Unlimited • 🎤 Audio • 🖼️ Image • 🌐 All Languages
+          </p>
+        </div>
+        
+        <!-- License Key Input -->
+        <div class="form-group" style="margin-top: 16px;">
+          <label for="license-key" style="font-size: 12px; opacity: 0.7;">Already have a license key?</label>
+          <input type="text" id="license-key" placeholder="XXXX-XXXX-XXXX-XXXX" style="text-transform: uppercase; font-family: monospace;">
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button type="button" id="activate-license" class="btn btn-secondary" style="flex: 1;">✓ Activate</button>
+          <button type="button" id="deactivate-license" class="btn btn-secondary" style="flex: 1; display: none;">✕ Deactivate</button>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <button type="button" id="save" class="btn btn-primary">💾 Save</button>
+      <button type="button" id="reset" class="btn btn-secondary">Reset</button>
+      <div id="status" class="status"></div>
+    </footer>
+  </div>
+
+</body>
+</html>

@@ -59,7 +59,7 @@ export const DEFAULT_CONFIG: Config = {
   },
   quiz: {
     auto: true,
-    autoSubmit: false,
+    autoSubmit: true,
     delayMin: 50,
     delayMax: 200,
   },
@@ -90,8 +90,8 @@ export const DEFAULT_CONFIG: Config = {
     },
   },
   pro: {
-    isPro: false,
-    devMode: false, // Production mode - enforces limits
+    isPro: true,
+    devMode: true, // Production mode - enforces limits
     dailyLimit: 10, // Free tier: 10 questions/day
     usedToday: 0,
     lastResetDate: new Date().toDateString(),

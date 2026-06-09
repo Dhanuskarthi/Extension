@@ -12,7 +12,7 @@ yarn.lock
 pnpm-lock.yaml
 
 # Build outputs
-dist/
+# dist/
 build/
 .cache/
 

@@ -4,7 +4,7 @@
  */
 
 import { QUIZ_SELECTORS } from '../../shared/constants';
-import { sleep } from '../../shared/utils';
+import { sleep, normalizeText } from '../../shared/utils';
 
 export interface SubmitResult {
   success: boolean;
@@ -66,12 +66,42 @@ export async function submitQuiz(container?: HTMLElement): Promise<SubmitResult>
 /**
  * Find submit button in container
  */
+/**
+ * Helper to determine if a button is a back/previous/return button
+ */
+function isBackButton(button: HTMLElement): boolean {
+  const backKeywords = ['back', 'prev', 'quay lai', 'truoc', 'return'];
+  
+  const text = normalizeText(button.textContent || '');
+  const id = normalizeText(button.id || '');
+  const className = normalizeText(button.className || '');
+  const name = normalizeText(button.getAttribute('name') || '');
+  const ariaLabel = normalizeText(button.getAttribute('aria-label') || '');
+  
+  const combined = `${text} ${id} ${className} ${name} ${ariaLabel}`;
+  
+  return backKeywords.some(keyword => combined.includes(keyword));
+}
+
+/**
+ * Find submit button in container
+ */
 function findSubmitButton(root: HTMLElement): HTMLElement | null {
   // Try specific selectors first
   for (const selector of QUIZ_SELECTORS.submit) {
-    const button = root.querySelector<HTMLElement>(selector);
-    if (button && isValidSubmitButton(button)) {
-      return button;
+    const buttons = root.querySelectorAll<HTMLElement>(selector);
+    for (const button of buttons) {
+      if (isValidSubmitButton(button) && !isBackButton(button)) {
+        // If it's a generic [role="button"], require positive keywords to avoid clicking unrelated components
+        if (selector === '[role="button"]') {
+          const text = normalizeText(button.textContent || '');
+          const positiveKeywords = ['next', 'submit', 'tiep', 'nop', 'continue', 'gui', 'xac nhan', 'hoan thanh', 'finish', 'done'];
+          if (!positiveKeywords.some(keyword => text.includes(keyword))) {
+            continue;
+          }
+        }
+        return button;
+      }
     }
   }
   
@@ -88,7 +118,7 @@ function findSubmitButton(root: HTMLElement): HTMLElement | null {
   for (const button of buttons) {
     const text = button.textContent?.toLowerCase().trim() || '';
     if (submitTexts.some(t => text.includes(t))) {
-      if (isValidSubmitButton(button)) {
+      if (isValidSubmitButton(button) && !isBackButton(button)) {
         return button;
       }
     }
@@ -228,9 +258,11 @@ export function findNextPageButton(container?: HTMLElement): HTMLElement | null 
   // Try specific selectors
   for (const selector of QUIZ_SELECTORS.nextPage) {
     try {
-      const button = searchRoot.querySelector<HTMLElement>(selector);
-      if (button && isValidSubmitButton(button) && !isSubmitButton(button)) {
-        return button;
+      const buttons = searchRoot.querySelectorAll<HTMLElement>(selector);
+      for (const button of buttons) {
+        if (isValidSubmitButton(button) && !isSubmitButton(button) && !isBackButton(button)) {
+          return button;
+        }
       }
     } catch {
       // Invalid selector, skip
@@ -254,7 +286,7 @@ export function findNextPageButton(container?: HTMLElement): HTMLElement | null 
     const isNext = nextTexts.some(t => combined.includes(t));
     const isSubmit = submitTexts.some(t => combined.includes(t));
     
-    if (isNext && !isSubmit && isValidSubmitButton(button)) {
+    if (isNext && !isSubmit && isValidSubmitButton(button) && !isBackButton(button)) {
       return button;
     }
   }

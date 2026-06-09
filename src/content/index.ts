@@ -196,7 +196,7 @@ if (window.__QORVA_INITIALIZED__) {
             });
             
             // PRO Feature: Auto-click
-            const isPro = this.config?.pro?.isPro || this.config?.pro?.devMode;
+            const isPro = true;
             
             if (this.config?.quiz.auto && isPro) {
               const result = await selectAnswer(element, answer, this.config.quiz);

@@ -4,7 +4,7 @@
  */
 
 import { QUIZ_SELECTORS, PERFORMANCE } from '../../shared/constants';
-import { generateId } from '../../shared/utils';
+import { generateId, hashString } from '../../shared/utils';
 import { parseQuestion } from './parser';
 import type { QuizQuestion } from '../../shared/types';
 
@@ -216,29 +216,15 @@ class QuizDetector {
    * Process a question container element
    */
   private processQuestionContainer(element: HTMLElement): DetectedQuestion | null {
-    // Skip if already processed
-    if (this.processedElements.has(element)) {
-      return null;
-    }
-    
-    // Check if already has qorva ID (scanned before via different path)
-    const existingId = element.getAttribute('data-qorva-id');
-    if (existingId && this.detectedQuestions.has(existingId)) {
-      this.processedElements.add(element);
-      return null;
-    }
-    
     // Check if this element is INSIDE an already-detected question
     const parentQuestion = element.closest('[data-qorva-id]');
     if (parentQuestion && parentQuestion !== element) {
-      this.processedElements.add(element);
       return null;
     }
     
     // Check if this element CONTAINS an already-detected question
     const childQuestion = element.querySelector('[data-qorva-id]');
     if (childQuestion) {
-      this.processedElements.add(element);
       return null;
     }
     
@@ -249,17 +235,29 @@ class QuizDetector {
       return null;
     }
     
-    // Mark as processed
-    this.processedElements.add(element);
+    // Compute content hash to support dynamic updates on SPA quizzes
+    const contentString = `${question.text}|${question.choices.join('|')}`;
+    const hash = hashString(contentString);
+    const existingHash = element.getAttribute('data-qorva-hash');
+    const existingId = element.getAttribute('data-qorva-id');
+
+    if (existingHash === hash && existingId && this.detectedQuestions.has(existingId)) {
+      this.processedElements.add(element);
+      return null;
+    }
     
-    // Generate stable ID - prioritize existing markers
-    const id = existingId ||
-               element.getAttribute('data-question-id') || 
-               element.id || 
-               generateId('q');
+    // If the hash changed (or it's a new question), clean up the previous question association
+    if (existingId) {
+      this.detectedQuestions.delete(existingId);
+      this.reportedQuestions.delete(existingId);
+    }
     
-    // Mark element with stable ID immediately
+    // Generate new stable ID
+    const id = generateId('q');
+    
+    // Mark element with new stable ID and hash immediately
     element.setAttribute('data-qorva-id', id);
+    element.setAttribute('data-qorva-hash', hash);
     
     const detected: DetectedQuestion = {
       id,
@@ -268,6 +266,7 @@ class QuizDetector {
     };
     
     this.detectedQuestions.set(id, detected);
+    this.processedElements.add(element);
     
     return detected;
   }
