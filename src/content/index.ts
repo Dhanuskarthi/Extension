@@ -100,6 +100,11 @@ if (window.__QORVA_INITIALIZED__) {
             this.toggleAudioQA();
             sendResponse({ ok: true });
             break;
+            
+          case 'RESCAN':
+            quizDetector.rescan();
+            sendResponse({ ok: true });
+            break;
         }
         return true;
       });
@@ -358,6 +363,8 @@ if (window.__QORVA_INITIALIZED__) {
         audioCapture.stop();
         this.audioEnabled = false;
       }
+      
+      overlayManager.updateWidgetStates();
     }
 
     /**

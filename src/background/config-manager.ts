@@ -11,16 +11,24 @@ class ConfigManager {
   private listeners: Set<(config: Config) => void> = new Set();
 
   /**
+   * Get storage area (sync with local fallback)
+   */
+  private getStorage(): chrome.storage.StorageArea {
+    return chrome.storage.sync || chrome.storage.local;
+  }
+
+  /**
    * Initialize config from storage
    */
   async init(): Promise<Config> {
     try {
-      const result = await chrome.storage.sync.get(STORAGE_KEYS.config);
+      const storage = this.getStorage();
+      const result = await storage.get(STORAGE_KEYS.config);
       this.config = this.mergeWithDefaults(result[STORAGE_KEYS.config]);
       
       // Listen for storage changes
-      chrome.storage.onChanged.addListener((changes, namespace) => {
-        if (namespace === 'sync' && changes[STORAGE_KEYS.config]) {
+      chrome.storage.onChanged.addListener((changes) => {
+        if (changes[STORAGE_KEYS.config]) {
           this.config = this.mergeWithDefaults(changes[STORAGE_KEYS.config].newValue);
           this.notifyListeners();
         }
@@ -28,9 +36,16 @@ class ConfigManager {
       
       return this.config;
     } catch (error) {
-      console.error('[ConfigManager] Failed to init config:', error);
-      this.config = { ...DEFAULT_CONFIG };
-      return this.config;
+      console.error('[ConfigManager] Failed to init config, trying local fallback:', error);
+      try {
+        const result = await chrome.storage.local.get(STORAGE_KEYS.config);
+        this.config = this.mergeWithDefaults(result[STORAGE_KEYS.config]);
+        return this.config;
+      } catch (localError) {
+        console.error('[ConfigManager] Local fallback also failed:', localError);
+        this.config = { ...DEFAULT_CONFIG };
+        return this.config;
+      }
     }
   }
 
@@ -73,7 +88,8 @@ class ConfigManager {
       newConfig.cache = { ...current.cache, ...updates.cache };
     }
     
-    await chrome.storage.sync.set({ [STORAGE_KEYS.config]: newConfig });
+    const storage = this.getStorage();
+    await storage.set({ [STORAGE_KEYS.config]: newConfig });
     this.config = newConfig;
     this.notifyListeners();
   }
@@ -100,7 +116,8 @@ class ConfigManager {
       [section]: newSection,
     };
     
-    await chrome.storage.sync.set({ [STORAGE_KEYS.config]: newConfig });
+    const storage = this.getStorage();
+    await storage.set({ [STORAGE_KEYS.config]: newConfig });
     this.config = newConfig;
     this.notifyListeners();
   }
@@ -109,7 +126,8 @@ class ConfigManager {
    * Reset config to defaults
    */
   async reset(): Promise<void> {
-    await chrome.storage.sync.set({ [STORAGE_KEYS.config]: DEFAULT_CONFIG });
+    const storage = this.getStorage();
+    await storage.set({ [STORAGE_KEYS.config]: DEFAULT_CONFIG });
     this.config = { ...DEFAULT_CONFIG };
     this.notifyListeners();
   }
