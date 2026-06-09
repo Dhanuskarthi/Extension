@@ -138,7 +138,7 @@ if (window.__QORVA_INITIALIZED__) {
         
         try {
           // Build context from audio and/or image
-          let contextParts: string[] = [];
+          const contextParts: string[] = [];
           
           // Auto-transcribe if audio question detected
           if (question.meta?.hasAudioContext && question.meta?.audioUrl) {

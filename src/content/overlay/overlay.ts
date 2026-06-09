@@ -249,7 +249,7 @@ class OverlayManager {
     card.innerHTML = `
       <div class="qorva-card-header">
         <span class="qorva-icon">⚡</span>
-        <span class="qorva-title">QORVA</span>
+        <span class="qorva-title">siuuuuu</span>
         <span class="qorva-question-num">${questionNum}</span>
         <button class="qorva-close" aria-label="Close">✕</button>
       </div>
@@ -1130,7 +1130,7 @@ class OverlayManager {
     this.controlWidget.className = 'qorva-control-widget';
     
     this.controlWidget.innerHTML = `
-      <button class="qorva-fab" title="QORVA Control Panel">⚡</button>
+      <button class="qorva-fab" title="siuuuuu Control Panel">⚡</button>
       <div class="qorva-menu">
         <button class="qorva-menu-item qorva-btn-rescan" title="Rescan Questions">🔍 Rescan</button>
         <button class="qorva-menu-item qorva-btn-toggle-quiz" title="Toggle Auto-Click">📝 Quiz: ON</button>
@@ -1277,7 +1277,7 @@ class OverlayManager {
       this.settingsModal.innerHTML = `
         <div class="qorva-settings-modal">
           <div class="qorva-settings-header">
-            <h3>🤖 QORVA Config Panel</h3>
+            <h3>🤖 siuuuuu Config Panel</h3>
             <button class="qorva-settings-close">✕</button>
           </div>
           <div class="qorva-settings-body">

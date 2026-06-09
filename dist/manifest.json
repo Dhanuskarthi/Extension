@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "QORVA",
-  "description": "Quiz Automation & Audio Realtime QA Extension",
+  "name": "siuuuuu",
+  "description": "Quiz Automation & Audio Realtime QA Extension by Dhanuskarthi",
   "version": "1.0.0",
   "icons": {
     "16": "public/icons/icon-16.png",
@@ -34,7 +34,7 @@
   "content_scripts": [
     {
       "js": [
-        "assets/index.ts-loader-dNFwaUfB.js"
+        "assets/index.ts-loader-Byw0T5Th.js"
       ],
       "matches": [
         "<all_urls>"
@@ -68,10 +68,10 @@
         "<all_urls>"
       ],
       "resources": [
-        "assets/constants-EoRpzPSM.js",
-        "assets/utils-Bp0ZwCbm.js",
+        "assets/constants-DATeGIjp.js",
+        "assets/utils-DEOwL8Qc.js",
         "assets/whisper-UjthEDOh.js",
-        "assets/index.ts-C5yvvfID.js"
+        "assets/index.ts-BdyfCs-X.js"
       ],
       "use_dynamic_url": false
     }

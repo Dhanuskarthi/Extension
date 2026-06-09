@@ -8,8 +8,9 @@ import type {
   QuizAnswer,
   AudioQAResponse,
   LLMResponse,
+  Config,
 } from '../shared/types';
-import { LLM_ENDPOINTS, PROMPTS, RATE_LIMIT } from '../shared/constants';
+import { LLM_ENDPOINTS, PROMPTS, RATE_LIMIT, SUPPORTED_LANGUAGES } from '../shared/constants';
 import { extractJSON, formatError } from '../shared/utils';
 import { configManager } from './config-manager';
 
@@ -29,7 +30,8 @@ class LLMRouter {
    * Answer a quiz question
    */
   async answerQuiz(question: QuizQuestion): Promise<LLMResponse<QuizAnswer>> {
-    const prompt = this.buildQuizPrompt(question);
+    const config = await configManager.get();
+    const prompt = this.buildQuizPrompt(question, config);
     
     try {
       const response = await this.executeWithRateLimit(() => 
@@ -173,12 +175,27 @@ class LLMRouter {
   /**
    * Build quiz prompt from question
    */
-  private buildQuizPrompt(question: QuizQuestion): string {
+  private buildQuizPrompt(question: QuizQuestion, config: Config): string {
     const choicesStr = question.choices
       .map((choice, i) => `(${i}) ${choice}`)
       .join('\n');
     
-    return PROMPTS.quiz
+    let prompt = PROMPTS.quiz;
+    const translation = config.ui?.translation;
+    
+    if (translation?.enabled) {
+      const langObj = SUPPORTED_LANGUAGES.find(l => l.code === translation.language);
+      const languageName = langObj ? langObj.name : translation.language;
+      
+      prompt = prompt
+        .replace(/\{\{#translate\}\}/g, '')
+        .replace(/\{\{\/translate\}\}/g, '')
+        .replace(/\{\{language\}\}/g, languageName);
+    } else {
+      prompt = prompt.replace(/\{\{#translate\}\}[\s\S]*?\{\{\/translate\}\}/g, '');
+    }
+    
+    return prompt
       .replace('{{question_text}}', question.text)
       .replace('{{choices}}', choicesStr);
   }

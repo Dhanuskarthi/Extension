@@ -243,45 +243,52 @@ class AudioCapture {
    * Record and transcribe using Whisper
    */
   async recordAndTranscribe(durationMs: number = 10000): Promise<string | null> {
-    return new Promise(async (resolve) => {
+    return new Promise((resolve) => {
       const chunks: Blob[] = [];
       
-      try {
-        await this.start({
-          source: 'mic',
-          sampleRate: 16000,
-          onSpeechEnd: async (blob) => {
-            chunks.push(blob);
-          },
-          onError: (error) => {
-            console.error('[QORVA] Recording error:', error);
-            resolve(null);
-          }
-        });
-        
-        // Start recording immediately
-        this.startRecording();
-        
-        // Stop after duration
-        setTimeout(async () => {
-          this.stopRecording();
-          await this.stop();
+      (async () => {
+        try {
+          await this.start({
+            source: 'mic',
+            sampleRate: 16000,
+            onSpeechEnd: async (blob) => {
+              chunks.push(blob);
+            },
+            onError: (error) => {
+              console.error('[QORVA] Recording error:', error);
+              resolve(null);
+            }
+          });
           
-          if (chunks.length === 0) {
-            resolve(null);
-            return;
-          }
+          // Start recording immediately
+          this.startRecording();
           
-          // Combine chunks and transcribe
-          const audioBlob = new Blob(chunks, { type: 'audio/webm' });
-          const transcript = await this.transcribeBlob(audioBlob);
-          resolve(transcript);
-        }, durationMs);
-        
-      } catch (error) {
-        console.error('[QORVA] Record and transcribe failed:', error);
-        resolve(null);
-      }
+          // Stop after duration
+          setTimeout(async () => {
+            try {
+              this.stopRecording();
+              await this.stop();
+              
+              if (chunks.length === 0) {
+                resolve(null);
+                return;
+              }
+              
+              // Combine chunks and transcribe
+              const audioBlob = new Blob(chunks, { type: 'audio/webm' });
+              const transcript = await this.transcribeBlob(audioBlob);
+              resolve(transcript);
+            } catch (err) {
+              console.error('[QORVA] Stop/transcribe error:', err);
+              resolve(null);
+            }
+          }, durationMs);
+          
+        } catch (error) {
+          console.error('[QORVA] Record and transcribe failed:', error);
+          resolve(null);
+        }
+      })();
     });
   }
 

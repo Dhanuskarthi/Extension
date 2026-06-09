@@ -76,7 +76,7 @@ export function normalizeText(text: string): string {
  */
 export function extractJSON<T>(text: string): T | null {
   // Remove markdown code blocks
-  let cleaned = text.replace(/```json\n?/g, '').replace(/```\n?/g, '');
+  const cleaned = text.replace(/```json\n?/g, '').replace(/```\n?/g, '');
   
   // Try to parse directly first
   try {

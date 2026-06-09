@@ -324,7 +324,7 @@ function isChoiceElement(element: HTMLElement): boolean {
  */
 function cleanQuestionText(text: string): string {
   return text
-    .replace(/^\s*\d+[\.\)\:]?\s*/, '') // Remove leading question number
+    .replace(/^\s*\d+[.):]?\s*/, '') // Remove leading question number
     .replace(/\s+/g, ' ')
     .trim();
 }
@@ -334,8 +334,8 @@ function cleanQuestionText(text: string): string {
  */
 function cleanChoiceText(text: string): string {
   return text
-    .replace(/^[A-Za-z][\.\)\:]?\s*/, '') // Remove leading letter (A. B. C.)
-    .replace(/^\d+[\.\)\:]?\s*/, '') // Remove leading number
+    .replace(/^[A-Za-z][.):]?\s*/, '') // Remove leading letter (A. B. C.)
+    .replace(/^\d+[.):]?\s*/, '') // Remove leading number
     .replace(/\s+/g, ' ')
     .trim();
 }
