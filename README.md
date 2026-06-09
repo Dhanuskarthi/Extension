@@ -1,6 +1,7 @@
 <div align="center">
 
-<img src="public/icons/icon-128.png" width="128" alt="siuuuuu Logo">
+<img width="200" height="300" alt="image" src="https://github.com/user-attachments/assets/cb7429e7-b4f0-4ef0-9596-e11e6af05663" />
+
 
 # ⚡ siuuuuu Extension
 
