@@ -1,10 +1,10 @@
 <div align="center">
 
-<img src="public/icons/icon-128.png" width="128" alt="QORVA Logo">
+<img src="public/icons/icon-128.png" width="128" alt="siuuuuu Logo">
 
-# ⚡ QORVA Extension
+# ⚡ siuuuuu Extension
 
-**AI-Powered Quiz Automation & Voice Q&A for Chrome**
+**AI-Powered Quiz Automation & Voice Q&A for Chrome — Developed by Dhanuskarthi**
 
 [![Manifest V3](https://img.shields.io/badge/manifest-v3-blue?style=for-the-badge)](https://developer.chrome.com/docs/extensions/mv3/intro/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
@@ -13,7 +13,7 @@
 
 [English](README.md) 
 
-[✨ Features](#-features) • [🚀 Quick Start](#-quick-start) • [📚 Documentation](#-documentation) • [🤝 Contributing](#-author)
+[✨ Features](#-features) • [🚀 Quick Start](#-quick-start) • [📚 Documentation](#-documentation) • [🤝 Author](#-author)
 
 </div>
 
@@ -21,12 +21,12 @@
 
 ## 🎯 Overview
 
-QORVA is a powerful Chrome extension that leverages AI to provide **instant quiz answers** and **voice-based Q&A**. Built with modern web technologies and designed for speed, privacy, and ease of use.
+siuuuuu is a powerful Chrome extension that leverages AI to provide **instant quiz answers** and **voice-based Q&A**. Built with modern web technologies and designed for speed, privacy, and ease of use.
 
-### Why QORVA?
+### Why siuuuuu?
 
 - 🚀 **Lightning Fast** - Instant answer detection and selection
-- 🎨 **Beautiful UI** - Modern, compact overlay with dark/light themes
+- 🎨 **Premium UI** - Modern, glassmorphic overlay with dark/light themes and custom fonts (Outfit & Inter)
 - 🔒 **Privacy First** - No data collection, all processing client-side
 - 💰 **Free to Use** - Works with free Gemini API (250 req/day)
 - 🌐 **Multi-Platform** - Supports Moodle, Google Forms, Canvas, Study4, and more
@@ -50,11 +50,11 @@ QORVA is a powerful Chrome extension that leverages AI to provide **instant quiz
 - **AI Responses** - Instant answers from Gemini/OpenAI/Claude
 - **Text-to-Speech** - Optional audio playback of answers
 
-### 🎨 Modern UI/UX
+### 🎨 Premium UI/UX
 
-- **Compact Overlay** - Non-intrusive answer cards
-- **Theme Support** - Dark, Light, and System themes
-- **Smooth Animations** - Fade-in/out with 0.25s transitions
+- **Compact Overlay** - Non-intrusive glassmorphic answer cards
+- **Theme Support** - Dark, Light, and System themes built with modern CSS variables
+- **Smooth Animations** - Fade-in/out and dynamic transitions
 - **Error Handling** - Rate limiting and auto-dismiss errors
 - **Explanation Toggle** - Show/hide detailed explanations
 
@@ -114,4 +114,6 @@ All major issues have been resolved in the latest version:
 
 ---
 
-</div>
+## 🤝 Author
+
+Developed and maintained with ❤️ by **Dhanuskarthi**.
