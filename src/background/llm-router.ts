@@ -184,8 +184,26 @@ class LLMRouter {
       .join('\n');
     
     let prompt = PROMPTS.quiz;
-    const translation = config.ui?.translation;
+    const showExp = config.ui?.showExplanation;
     
+    if (!showExp) {
+      prompt = `You are a quiz AI. Return ONLY valid JSON:
+{"answer_index": <INTEGER>, "explanation": ""{{#translate}}, "translation": {"answer": "<translated answer>", "explanation": ""}{{/translate}}}
+
+Question: {{question_text}}
+
+Choices:
+{{choices}}
+
+IMPORTANT RULES:
+- answer_index MUST be the NUMBER in parentheses before the correct choice
+- Return the NUMBER, not a letter
+- Leave explanation empty
+- DO NOT return text outside of JSON
+{{#translate}}- Also translate the answer to {{language}}{{/translate}}`;
+    }
+    
+    const translation = config.ui?.translation;
     if (translation?.enabled) {
       const langObj = SUPPORTED_LANGUAGES.find(l => l.code === translation.language);
       const languageName = langObj ? langObj.name : translation.language;
