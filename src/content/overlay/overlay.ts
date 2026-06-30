@@ -43,9 +43,6 @@ class OverlayManager {
     document.body.appendChild(this.container);
     document.body.appendChild(this.transcribeContainer);
     
-    // Create floating control widget for SEB compatibility
-    this.createControlWidget();
-    
     console.log('[QORVA] Overlay manager initialized');
   }
 
