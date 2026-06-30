@@ -146,6 +146,9 @@ class ConfigManager {
   async isApiKeyConfigured(): Promise<boolean> {
     const config = await this.get();
     const provider = config.llm.provider;
+    if (provider === 'chrome-ai') {
+      return true;
+    }
     const providerConfig = config.llm[provider];
     return !!providerConfig?.apiKey;
   }

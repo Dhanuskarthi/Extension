@@ -261,6 +261,10 @@ class LLMRouter {
     const provider = config.llm.provider;
     const providerConfig = config.llm[provider];
     
+    if (provider === 'chrome-ai') {
+      return await this.callChromeAI(prompt);
+    }
+    
     // Build keys array: primary key + additional keys
     const keys: string[] = [];
     if (providerConfig?.apiKey) keys.push(providerConfig.apiKey);
@@ -528,6 +532,53 @@ class LLMRouter {
     } catch (e) {
       console.warn('[LLMRouter] safeParseJSON failed:', e);
       return null;
+    }
+  }
+
+  /**
+   * Call Chrome Built-in AI (Gemini Nano)
+   */
+  private async callChromeAI(prompt: string): Promise<string> {
+    const aiObj = (self as any).ai || (globalThis as any).ai;
+    if (!aiObj) {
+      throw new Error('Chrome Built-in AI is not supported in this browser version. Ensure you are using Chrome 127+ and have enabled prompt API flags in chrome://flags.');
+    }
+    
+    let languageModel = aiObj.languageModel;
+    if (!languageModel && aiObj.assistant) {
+      languageModel = aiObj.assistant;
+    }
+    
+    if (!languageModel) {
+      throw new Error('Chrome prompt API is not available.');
+    }
+    
+    let isAvailable = false;
+    try {
+      if (typeof languageModel.availability === 'function') {
+        const avail = await languageModel.availability();
+        isAvailable = avail !== 'no';
+      } else if (typeof languageModel.capabilities === 'function') {
+        const caps = await languageModel.capabilities();
+        isAvailable = caps.available !== 'no';
+      } else {
+        isAvailable = true;
+      }
+    } catch {
+      isAvailable = true;
+    }
+    
+    if (!isAvailable) {
+      throw new Error('Gemini Nano is not downloaded or ready. Please check chrome://components/ -> "Optimization Guide On Device Model" and ensure it is updated.');
+    }
+    
+    const session = await languageModel.create();
+    try {
+      return await session.prompt(prompt);
+    } finally {
+      if (typeof session.destroy === 'function') {
+        session.destroy();
+      }
     }
   }
 }

@@ -28,6 +28,8 @@ const elements = {
   claudeModel: $('claude-model') as HTMLSelectElement,
   groqKey: $('groq-key') as HTMLInputElement,
   groqModel: $('groq-model') as HTMLSelectElement,
+  chromeAiSettings: $('chrome-ai-settings') as HTMLDivElement,
+  
   
   // Quiz
   quizAuto: $('quiz-auto') as HTMLInputElement,
@@ -211,6 +213,7 @@ function showProviderSettings(provider: LLMProvider): void {
   elements.openaiSettings.classList.toggle('hidden', provider !== 'openai');
   elements.claudeSettings.classList.toggle('hidden', provider !== 'claude');
   elements.groqSettings.classList.toggle('hidden', provider !== 'groq');
+  elements.chromeAiSettings.classList.toggle('hidden', provider !== 'chrome-ai');
 }
 
 /**
@@ -280,6 +283,10 @@ async function saveConfig(): Promise<void> {
           apiKey: elements.groqKey.value.trim(),
           model: elements.groqModel.value,
         },
+        'chrome-ai': {
+          apiKey: '',
+          model: 'gemini-nano',
+        },
       },
       quiz: {
         auto: elements.quizAuto.checked,
@@ -322,7 +329,7 @@ async function saveConfig(): Promise<void> {
     
     // Validate required API key
     const selectedProvider = config.llm.provider;
-    if (!config.llm[selectedProvider].apiKey) {
+    if (selectedProvider !== 'chrome-ai' && !config.llm[selectedProvider].apiKey) {
       showStatus(`Enter ${selectedProvider} API key`, 'error');
       return;
     }

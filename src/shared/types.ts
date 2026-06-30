@@ -4,7 +4,7 @@
 
 // ============ LLM Provider Types ============
 
-export type LLMProvider = 'gemini' | 'openai' | 'claude' | 'groq';
+export type LLMProvider = 'gemini' | 'openai' | 'claude' | 'groq' | 'chrome-ai';
 
 export interface LLMProviderConfig {
   apiKey: string;           // Primary key (legacy support)
@@ -19,6 +19,7 @@ export interface LLMConfig {
   openai: LLMProviderConfig;
   claude: LLMProviderConfig;
   groq: LLMProviderConfig;
+  'chrome-ai': LLMProviderConfig;
 }
 
 // ============ Quiz Types ============

@@ -56,6 +56,10 @@ export const DEFAULT_CONFIG: Config = {
       apiKey: '',
       model: 'llama-3.3-70b-versatile',
     },
+    'chrome-ai': {
+      apiKey: '',
+      model: 'gemini-nano',
+    },
   },
   quiz: {
     auto: true,
