@@ -536,80 +536,31 @@ class LLMRouter {
   }
 
   /**
-   * Call Free AI (DuckDuckGo Chat API proxy to GPT-4o-mini)
+   * Call Free AI (Pollinations.ai proxy to GPT-4o-mini)
    */
   private async callChromeAI(prompt: string): Promise<string> {
-    const statusUrl = 'https://duckduckgo.com/duckchat/v1/status';
-    const statusRes = await fetch(statusUrl, {
-      headers: {
-        'x-vqd-accept': '1',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-      }
-    });
-    
-    if (!statusRes.ok) {
-      throw new Error(`Free AI Auth failed: ${statusRes.status}`);
-    }
-    
-    const vqdToken = statusRes.headers.get('x-vqd-4');
-    if (!vqdToken) {
-      throw new Error('Failed to retrieve Free AI session token');
-    }
-    
-    const chatUrl = 'https://duckduckgo.com/duckchat/v1/chat';
-    const chatRes = await fetch(chatUrl, {
+    const url = 'https://text.pollinations.ai/';
+    const res = await fetch(url, {
       method: 'POST',
       headers: {
-        'x-vqd-4': vqdToken,
-        'Content-Type': 'application/json',
-        'Accept': 'text/event-stream',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [{ role: 'user', content: prompt }]
+        messages: [{ role: 'user', content: prompt }],
+        model: 'openai'
       })
     });
     
-    if (!chatRes.ok) {
-      throw new Error(`Free AI request failed: ${chatRes.status}`);
+    if (!res.ok) {
+      throw new Error(`Free AI request failed with status: ${res.status}`);
     }
     
-    const reader = chatRes.body?.getReader();
-    if (!reader) {
-      throw new Error('Free AI response body is empty');
+    const text = await res.text();
+    if (!text || text.trim() === '') {
+      throw new Error('Free AI returned an empty response');
     }
     
-    const decoder = new TextDecoder();
-    let textBuffer = '';
-    let aiResponse = '';
-    
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      
-      textBuffer += decoder.decode(value, { stream: true });
-      const lines = textBuffer.split('\n');
-      textBuffer = lines.pop() || '';
-      
-      for (const line of lines) {
-        const trimmed = line.trim();
-        if (trimmed.startsWith('data:')) {
-          const jsonStr = trimmed.substring(5).trim();
-          if (jsonStr === '[DONE]') continue;
-          try {
-            const data = JSON.parse(jsonStr);
-            if (data.chunk) {
-              aiResponse += data.chunk;
-            }
-          } catch {
-            // Ignore parse errors on control frames
-          }
-        }
-      }
-    }
-    
-    return aiResponse.trim();
+    return text.trim();
   }
 }
 
