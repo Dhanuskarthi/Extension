@@ -133,11 +133,14 @@ class LLMRouter {
       });
       
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error?.message || `Gemini Vision error: ${response.status}`);
+        const errData = await this.safeParseJSON(response);
+        throw new Error(errData?.error?.message || `Gemini Vision error: ${response.status}`);
       }
       
-      const data = await response.json();
+      const data = await this.safeParseJSON(response);
+      if (!data) {
+        throw new Error('Failed to parse Gemini Vision response');
+      }
       const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
       
       console.log('[QORVA] Image analysis result:', text.substring(0, 100) + '...');
@@ -354,11 +357,14 @@ class LLMRouter {
     });
     
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error?.message || `Gemini API error: ${response.status}`);
+      const errData = await this.safeParseJSON(response);
+      throw new Error(errData?.error?.message || `Gemini API error: ${response.status}`);
     }
     
-    const data = await response.json();
+    const data = await this.safeParseJSON(response);
+    if (!data) {
+      throw new Error('Failed to parse Gemini API response');
+    }
     return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
   }
 
@@ -393,11 +399,14 @@ class LLMRouter {
     });
     
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error?.message || `OpenAI API error: ${response.status}`);
+      const errData = await this.safeParseJSON(response);
+      throw new Error(errData?.error?.message || `OpenAI API error: ${response.status}`);
     }
     
-    const data = await response.json();
+    const data = await this.safeParseJSON(response);
+    if (!data) {
+      throw new Error('Failed to parse OpenAI API response');
+    }
     return data.choices?.[0]?.message?.content || '';
   }
 
@@ -429,11 +438,14 @@ class LLMRouter {
     });
     
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error?.message || `Claude API error: ${response.status}`);
+      const errData = await this.safeParseJSON(response);
+      throw new Error(errData?.error?.message || `Claude API error: ${response.status}`);
     }
     
-    const data = await response.json();
+    const data = await this.safeParseJSON(response);
+    if (!data) {
+      throw new Error('Failed to parse Claude API response');
+    }
     return data.content?.[0]?.text || '';
   }
 
@@ -465,11 +477,14 @@ class LLMRouter {
     });
     
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error?.message || `Groq API error: ${response.status}`);
+      const errData = await this.safeParseJSON(response);
+      throw new Error(errData?.error?.message || `Groq API error: ${response.status}`);
     }
     
-    const data = await response.json();
+    const data = await this.safeParseJSON(response);
+    if (!data) {
+      throw new Error('Failed to parse Groq API response');
+    }
     return data.choices?.[0]?.message?.content || '';
   }
 
@@ -498,6 +513,22 @@ class LLMRouter {
       active: this.activeRequests,
       queued: this.requestQueue.length,
     };
+  }
+
+  /**
+   * Safely parse JSON from a response, avoiding "Unexpected end of JSON input" SyntaxErrors
+   */
+  private async safeParseJSON(response: Response): Promise<any> {
+    try {
+      const text = await response.text();
+      if (!text || text.trim() === '') {
+        return null;
+      }
+      return JSON.parse(text);
+    } catch (e) {
+      console.warn('[LLMRouter] safeParseJSON failed:', e);
+      return null;
+    }
   }
 }
 
