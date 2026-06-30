@@ -536,15 +536,105 @@ class LLMRouter {
   }
 
   /**
-   * Call Free AI (Pollinations.ai proxy to GPT-4o-mini)
+   * Call Free AI (Hybrid DuckDuckGo + Pollinations)
    */
   private async callChromeAI(prompt: string): Promise<string> {
+    try {
+      console.log('[QORVA] Trying DuckDuckGo Chat (Instant)...');
+      return await this.callDuckDuckGo(prompt);
+    } catch (e) {
+      console.warn('[QORVA] DuckDuckGo Chat failed, falling back to Pollinations...', e);
+      return await this.callPollinations(prompt);
+    }
+  }
+
+  /**
+   * Call DuckDuckGo Chat API (GPT-4o-mini, instant response)
+   */
+  private async callDuckDuckGo(prompt: string): Promise<string> {
+    const statusUrl = 'https://duckduckgo.com/duckchat/v1/status';
+    const statusRes = await fetch(statusUrl, {
+      headers: {
+        'x-vqd-accept': '1',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+      }
+    });
+    
+    if (!statusRes.ok) {
+      throw new Error(`DuckDuckGo Auth failed: ${statusRes.status}`);
+    }
+    
+    const vqdToken = statusRes.headers.get('x-vqd-4');
+    if (!vqdToken) {
+      throw new Error('Failed to retrieve DuckDuckGo VQD token');
+    }
+    
+    const chatUrl = 'https://duckduckgo.com/duckchat/v1/chat';
+    const chatRes = await fetch(chatUrl, {
+      method: 'POST',
+      headers: {
+        'x-vqd-4': vqdToken,
+        'Content-Type': 'application/json',
+        'Accept': 'text/event-stream',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    
+    if (!chatRes.ok) {
+      throw new Error(`DuckDuckGo request failed: ${chatRes.status}`);
+    }
+    
+    const reader = chatRes.body?.getReader();
+    if (!reader) {
+      throw new Error('DuckDuckGo response body is empty');
+    }
+    
+    const decoder = new TextDecoder();
+    let textBuffer = '';
+    let aiResponse = '';
+    
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      
+      textBuffer += decoder.decode(value, { stream: true });
+      const lines = textBuffer.split('\n');
+      textBuffer = lines.pop() || '';
+      
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (trimmed.startsWith('data:')) {
+          const jsonStr = trimmed.substring(5).trim();
+          if (jsonStr === '[DONE]') continue;
+          try {
+            const data = JSON.parse(jsonStr);
+            if (data.chunk) {
+              aiResponse += data.chunk;
+            }
+          } catch {
+            // Ignore parse errors on control frames
+          }
+        }
+      }
+    }
+    
+    return aiResponse.trim();
+  }
+
+  /**
+   * Call Pollinations.ai proxy as fallback
+   */
+  private async callPollinations(prompt: string): Promise<string> {
     const models = ['openai', 'mistral', 'llama'];
     let lastError: Error | null = null;
     
     for (const model of models) {
       try {
-        console.log(`[QORVA] Trying Free AI with model: ${model}...`);
+        console.log(`[QORVA] Trying Pollinations with model: ${model}...`);
         const url = 'https://text.pollinations.ai/';
         const res = await fetch(url, {
           method: 'POST',
@@ -560,20 +650,20 @@ class LLMRouter {
         if (res.ok) {
           const text = await res.text();
           if (text && text.trim() !== '') {
-            console.log(`[QORVA] Free AI succeeded with model: ${model}`);
+            console.log(`[QORVA] Pollinations succeeded with model: ${model}`);
             return text.trim();
           }
         }
         
-        console.warn(`[QORVA] Free AI model ${model} failed with status: ${res.status}`);
-        lastError = new Error(`Free AI request failed with status: ${res.status}`);
+        console.warn(`[QORVA] Pollinations model ${model} failed with status: ${res.status}`);
+        lastError = new Error(`Pollinations request failed with status: ${res.status}`);
       } catch (e) {
-        console.warn(`[QORVA] Free AI model ${model} threw error:`, e);
+        console.warn(`[QORVA] Pollinations model ${model} threw error:`, e);
         lastError = e as Error;
       }
     }
     
-    throw lastError || new Error('Free AI failed to return a response');
+    throw lastError || new Error('Pollinations failed to return a response');
   }
 }
 

@@ -14,7 +14,8 @@
     "scripting",
     "offscreen",
     "tabCapture",
-    "clipboardWrite"
+    "clipboardWrite",
+    "declarativeNetRequest"
   ],
   "optional_permissions": [
     "tabs",

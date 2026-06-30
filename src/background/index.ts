@@ -15,6 +15,9 @@ chrome.runtime.onInstalled.addListener(async (details) => {
   
   // Initialize cache
   await cacheManager.init();
+  
+  // Setup declarativeNetRequest rules
+  await setupDNRRules();
 });
 
 // Initialize on startup
@@ -26,7 +29,56 @@ chrome.runtime.onStartup.addListener(async () => {
   
   // Initialize cache
   await cacheManager.init();
+  
+  // Setup declarativeNetRequest rules
+  await setupDNRRules();
 });
+
+/**
+ * Register declarativeNetRequest rules to remove chrome-extension:// Origin header on duckduckgo calls
+ */
+async function setupDNRRules(): Promise<void> {
+  const rules: chrome.declarativeNetRequest.Rule[] = [
+    {
+      id: 1,
+      priority: 1,
+      action: {
+        type: chrome.declarativeNetRequest.RuleActionType.MODIFY_HEADERS,
+        requestHeaders: [
+          {
+            header: 'origin',
+            operation: chrome.declarativeNetRequest.HeaderOperation.SET,
+            value: 'https://duckduckgo.com'
+          },
+          {
+            header: 'referer',
+            operation: chrome.declarativeNetRequest.HeaderOperation.SET,
+            value: 'https://duckduckgo.com/'
+          }
+        ]
+      },
+      condition: {
+        urlFilter: '*://duckduckgo.com/*',
+        resourceTypes: [
+          chrome.declarativeNetRequest.ResourceType.XMLHTTPREQUEST
+        ]
+      }
+    }
+  ];
+  
+  try {
+    const existingRules = await chrome.declarativeNetRequest.getDynamicRules();
+    const existingRuleIds = existingRules.map(r => r.id);
+    
+    await chrome.declarativeNetRequest.updateDynamicRules({
+      removeRuleIds: existingRuleIds,
+      addRules: rules
+    });
+    console.log('[QORVA] declarativeNetRequest rules registered');
+  } catch (error) {
+    console.error('[QORVA] Failed to register declarativeNetRequest rules:', error);
+  }
+}
 
 // Setup message handler
 setupMessageHandler();
