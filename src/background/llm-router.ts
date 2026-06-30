@@ -539,28 +539,41 @@ class LLMRouter {
    * Call Free AI (Pollinations.ai proxy to GPT-4o-mini)
    */
   private async callChromeAI(prompt: string): Promise<string> {
-    const url = 'https://text.pollinations.ai/';
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        messages: [{ role: 'user', content: prompt }],
-        model: 'openai'
-      })
-    });
+    const models = ['openai', 'mistral', 'llama'];
+    let lastError: Error | null = null;
     
-    if (!res.ok) {
-      throw new Error(`Free AI request failed with status: ${res.status}`);
+    for (const model of models) {
+      try {
+        console.log(`[QORVA] Trying Free AI with model: ${model}...`);
+        const url = 'https://text.pollinations.ai/';
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            messages: [{ role: 'user', content: prompt }],
+            model: model
+          })
+        });
+        
+        if (res.ok) {
+          const text = await res.text();
+          if (text && text.trim() !== '') {
+            console.log(`[QORVA] Free AI succeeded with model: ${model}`);
+            return text.trim();
+          }
+        }
+        
+        console.warn(`[QORVA] Free AI model ${model} failed with status: ${res.status}`);
+        lastError = new Error(`Free AI request failed with status: ${res.status}`);
+      } catch (e) {
+        console.warn(`[QORVA] Free AI model ${model} threw error:`, e);
+        lastError = e as Error;
+      }
     }
     
-    const text = await res.text();
-    if (!text || text.trim() === '') {
-      throw new Error('Free AI returned an empty response');
-    }
-    
-    return text.trim();
+    throw lastError || new Error('Free AI failed to return a response');
   }
 }
 
