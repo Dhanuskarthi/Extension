@@ -536,50 +536,80 @@ class LLMRouter {
   }
 
   /**
-   * Call Chrome Built-in AI (Gemini Nano)
+   * Call Free AI (DuckDuckGo Chat API proxy to GPT-4o-mini)
    */
   private async callChromeAI(prompt: string): Promise<string> {
-    const aiObj = (self as any).ai || (globalThis as any).ai;
-    if (!aiObj) {
-      throw new Error('Chrome Built-in AI is not supported in this browser version. Ensure you are using Chrome 127+ and have enabled prompt API flags in chrome://flags.');
-    }
-    
-    let languageModel = aiObj.languageModel;
-    if (!languageModel && aiObj.assistant) {
-      languageModel = aiObj.assistant;
-    }
-    
-    if (!languageModel) {
-      throw new Error('Chrome prompt API is not available.');
-    }
-    
-    let isAvailable = false;
-    try {
-      if (typeof languageModel.availability === 'function') {
-        const avail = await languageModel.availability();
-        isAvailable = avail !== 'no';
-      } else if (typeof languageModel.capabilities === 'function') {
-        const caps = await languageModel.capabilities();
-        isAvailable = caps.available !== 'no';
-      } else {
-        isAvailable = true;
+    const statusUrl = 'https://duckduckgo.com/duckchat/v1/status';
+    const statusRes = await fetch(statusUrl, {
+      headers: {
+        'x-vqd-accept': '1',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
       }
-    } catch {
-      isAvailable = true;
+    });
+    
+    if (!statusRes.ok) {
+      throw new Error(`Free AI Auth failed: ${statusRes.status}`);
     }
     
-    if (!isAvailable) {
-      throw new Error('Gemini Nano is not downloaded or ready. Please check chrome://components/ -> "Optimization Guide On Device Model" and ensure it is updated.');
+    const vqdToken = statusRes.headers.get('x-vqd-4');
+    if (!vqdToken) {
+      throw new Error('Failed to retrieve Free AI session token');
     }
     
-    const session = await languageModel.create();
-    try {
-      return await session.prompt(prompt);
-    } finally {
-      if (typeof session.destroy === 'function') {
-        session.destroy();
+    const chatUrl = 'https://duckduckgo.com/duckchat/v1/chat';
+    const chatRes = await fetch(chatUrl, {
+      method: 'POST',
+      headers: {
+        'x-vqd-4': vqdToken,
+        'Content-Type': 'application/json',
+        'Accept': 'text/event-stream',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    
+    if (!chatRes.ok) {
+      throw new Error(`Free AI request failed: ${chatRes.status}`);
+    }
+    
+    const reader = chatRes.body?.getReader();
+    if (!reader) {
+      throw new Error('Free AI response body is empty');
+    }
+    
+    const decoder = new TextDecoder();
+    let textBuffer = '';
+    let aiResponse = '';
+    
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      
+      textBuffer += decoder.decode(value, { stream: true });
+      const lines = textBuffer.split('\n');
+      textBuffer = lines.pop() || '';
+      
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (trimmed.startsWith('data:')) {
+          const jsonStr = trimmed.substring(5).trim();
+          if (jsonStr === '[DONE]') continue;
+          try {
+            const data = JSON.parse(jsonStr);
+            if (data.chunk) {
+              aiResponse += data.chunk;
+            }
+          } catch {
+            // Ignore parse errors on control frames
+          }
+        }
       }
     }
+    
+    return aiResponse.trim();
   }
 }
 

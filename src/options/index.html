@@ -37,7 +37,7 @@
             <option value="openai">OpenAI</option>
             <option value="claude">Claude</option>
             <option value="groq">Groq</option>
-            <option value="chrome-ai">Chrome Built-in AI (No API Key Required)</option>
+            <option value="chrome-ai">Free AI (No API Key Required)</option>
           </select>
         </div>
 
@@ -117,14 +117,8 @@
         <!-- Chrome Built-in AI -->
         <div id="chrome-ai-settings" class="provider-settings hidden">
           <div class="form-group" style="padding: 10px; background: rgba(255, 255, 255, 0.02); border-radius: 8px; border: 1px solid var(--border-color);">
-            <p style="margin-bottom: 8px; color: var(--text-secondary); font-size: 12px;">
-              Runs Google's <strong>Gemini Nano</strong> model locally on your device. No internet connection or API keys are required.
-            </p>
-            <p style="font-size: 11px; color: var(--text-muted); line-height: 1.4; margin: 0;">
-              <strong>Prerequisites:</strong><br>
-              1. Open <code>chrome://flags/#optimization-guide-on-device-model</code> and set to <strong>Enabled BypassPerfRequirement</strong>.<br>
-              2. Open <code>chrome://flags/#prompt-api-for-gemini-nano</code> and set to <strong>Enabled</strong>.<br>
-              3. Relaunch Chrome and wait a few minutes for the model to download (check progress in <code>chrome://components</code> under "Optimization Guide On Device Model").
+            <p style="margin-bottom: 0; color: var(--text-secondary); font-size: 12px; line-height: 1.4;">
+              Uses a built-in <strong>free AI service</strong> (GPT-4o-mini) to answer questions without requiring any setup, flags, or API keys.
             </p>
           </div>
         </div>
