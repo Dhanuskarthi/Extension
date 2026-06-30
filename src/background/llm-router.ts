@@ -567,80 +567,92 @@ IMPORTANT RULES:
   }
 
   /**
-   * Call DuckDuckGo Chat API (GPT-4o-mini, instant response)
+   * Call DuckDuckGo Chat API (GPT-4o-mini, instant response) with a 2-second abort timeout
    */
   private async callDuckDuckGo(prompt: string): Promise<string> {
-    const statusUrl = 'https://duckduckgo.com/duckchat/v1/status';
-    const statusRes = await fetch(statusUrl, {
-      headers: {
-        'x-vqd-accept': '1',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      console.warn('[QORVA] DuckDuckGo request timed out after 2s, aborting...');
+      controller.abort();
+    }, 2000);
+    
+    try {
+      const statusUrl = 'https://duckduckgo.com/duckchat/v1/status';
+      const statusRes = await fetch(statusUrl, {
+        signal: controller.signal,
+        headers: {
+          'x-vqd-accept': '1',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        }
+      });
+      
+      if (!statusRes.ok) {
+        throw new Error(`DuckDuckGo Auth failed: ${statusRes.status}`);
       }
-    });
-    
-    if (!statusRes.ok) {
-      throw new Error(`DuckDuckGo Auth failed: ${statusRes.status}`);
-    }
-    
-    const vqdToken = statusRes.headers.get('x-vqd-4');
-    if (!vqdToken) {
-      throw new Error('Failed to retrieve DuckDuckGo VQD token');
-    }
-    
-    const chatUrl = 'https://duckduckgo.com/duckchat/v1/chat';
-    const chatRes = await fetch(chatUrl, {
-      method: 'POST',
-      headers: {
-        'x-vqd-4': vqdToken,
-        'Content-Type': 'application/json',
-        'Accept': 'text/event-stream',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
-    
-    if (!chatRes.ok) {
-      throw new Error(`DuckDuckGo request failed: ${chatRes.status}`);
-    }
-    
-    const reader = chatRes.body?.getReader();
-    if (!reader) {
-      throw new Error('DuckDuckGo response body is empty');
-    }
-    
-    const decoder = new TextDecoder();
-    let textBuffer = '';
-    let aiResponse = '';
-    
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
       
-      textBuffer += decoder.decode(value, { stream: true });
-      const lines = textBuffer.split('\n');
-      textBuffer = lines.pop() || '';
+      const vqdToken = statusRes.headers.get('x-vqd-4');
+      if (!vqdToken) {
+        throw new Error('Failed to retrieve DuckDuckGo VQD token');
+      }
       
-      for (const line of lines) {
-        const trimmed = line.trim();
-        if (trimmed.startsWith('data:')) {
-          const jsonStr = trimmed.substring(5).trim();
-          if (jsonStr === '[DONE]') continue;
-          try {
-            const data = JSON.parse(jsonStr);
-            if (data.chunk) {
-              aiResponse += data.chunk;
+      const chatUrl = 'https://duckduckgo.com/duckchat/v1/chat';
+      const chatRes = await fetch(chatUrl, {
+        method: 'POST',
+        signal: controller.signal,
+        headers: {
+          'x-vqd-4': vqdToken,
+          'Content-Type': 'application/json',
+          'Accept': 'text/event-stream',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [{ role: 'user', content: prompt }]
+        })
+      });
+      
+      if (!chatRes.ok) {
+        throw new Error(`DuckDuckGo request failed: ${chatRes.status}`);
+      }
+      
+      const reader = chatRes.body?.getReader();
+      if (!reader) {
+        throw new Error('DuckDuckGo response body is empty');
+      }
+      
+      const decoder = new TextDecoder();
+      let textBuffer = '';
+      let aiResponse = '';
+      
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        
+        textBuffer += decoder.decode(value, { stream: true });
+        const lines = textBuffer.split('\n');
+        textBuffer = lines.pop() || '';
+        
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (trimmed.startsWith('data:')) {
+            const jsonStr = trimmed.substring(5).trim();
+            if (jsonStr === '[DONE]') continue;
+            try {
+              const data = JSON.parse(jsonStr);
+              if (data.chunk) {
+                aiResponse += data.chunk;
+              }
+            } catch {
+              // Ignore parse errors on control frames
             }
-          } catch {
-            // Ignore parse errors on control frames
           }
         }
       }
+      
+      return aiResponse.trim();
+    } finally {
+      clearTimeout(timeoutId);
     }
-    
-    return aiResponse.trim();
   }
 
   /**

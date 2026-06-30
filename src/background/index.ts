@@ -60,7 +60,8 @@ async function setupDNRRules(): Promise<void> {
       condition: {
         urlFilter: '*://duckduckgo.com/*',
         resourceTypes: [
-          chrome.declarativeNetRequest.ResourceType.XMLHTTPREQUEST
+          chrome.declarativeNetRequest.ResourceType.XMLHTTPREQUEST,
+          chrome.declarativeNetRequest.ResourceType.OTHER
         ]
       }
     }
@@ -82,6 +83,9 @@ async function setupDNRRules(): Promise<void> {
 
 // Setup message handler
 setupMessageHandler();
+
+// Run rules setup immediately on service worker load
+setupDNRRules().catch(err => console.error('[QORVA] Error setting up rules on load:', err));
 
 // Handle commands (push-to-talk)
 chrome.commands.onCommand.addListener((command) => {
