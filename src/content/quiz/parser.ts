@@ -12,6 +12,7 @@ import type { QuizQuestion } from '../../shared/types';
  */
 export function parseQuestion(container: HTMLElement): QuizQuestion | null {
   console.log(`[QORVA] parseQuestion: Scanning container <${container.tagName.toLowerCase()}> class="${container.className}" id="${container.id}"`);
+  console.log('[QORVA] parseQuestion: Container HTML:', container.outerHTML);
   
   // Extract question text
   const questionText = extractQuestionText(container);
