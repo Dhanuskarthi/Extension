@@ -35,7 +35,7 @@
   "content_scripts": [
     {
       "js": [
-        "assets/index.ts-loader-GAloxmSG.js"
+        "src/content/index.iife.js"
       ],
       "matches": [
         "<all_urls>"
@@ -62,19 +62,5 @@
       },
       "description": "Push-to-Talk for Audio QA"
     }
-  },
-  "web_accessible_resources": [
-    {
-      "matches": [
-        "<all_urls>"
-      ],
-      "resources": [
-        "assets/constants-BVz2GTkz.js",
-        "assets/utils-DEOwL8Qc.js",
-        "assets/whisper-UjthEDOh.js",
-        "assets/index.ts-CJ4ukbe4.js"
-      ],
-      "use_dynamic_url": false
-    }
-  ]
+  }
 }
