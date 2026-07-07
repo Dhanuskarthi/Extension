@@ -97,14 +97,14 @@ class QuizDetector {
         continue;
       }
       
-      // Find the closest parent question container for any changes (childList, attributes, characterData)
-      const targetElement = target.nodeType === Node.ELEMENT_NODE ? target : target.parentElement;
-      if (targetElement) {
-        const containerSelector = QUIZ_SELECTORS.containers.join(', ');
-        const closestContainer = targetElement.closest<HTMLElement>(containerSelector);
-        if (closestContainer) {
-          containersToScan.add(closestContainer);
+      // Traverse up to find all matching parent question containers for any changes (childList, attributes, characterData)
+      const containerSelector = QUIZ_SELECTORS.containers.join(', ');
+      let current: HTMLElement | null = target.nodeType === Node.ELEMENT_NODE ? (target as HTMLElement) : target.parentElement;
+      while (current && current !== document.body) {
+        if (current.matches && current.matches(containerSelector)) {
+          containersToScan.add(current);
         }
+        current = current.parentElement;
       }
       
       // Also check newly added HTML elements specifically

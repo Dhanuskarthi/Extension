@@ -110,7 +110,8 @@ class OverlayManager {
    * Clean up cards whose target question elements are no longer in the DOM
    */
   cleanDetachedCards(): void {
-    for (const id of this.quizCards.keys()) {
+    const ids = Array.from(this.quizCards.keys());
+    for (const id of ids) {
       const targetElement = document.querySelector(`[data-qorva-id="${id}"]`);
       if (!targetElement || !document.body.contains(targetElement)) {
         this.removeQuizCard(id);
