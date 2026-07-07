@@ -107,6 +107,18 @@ class OverlayManager {
   }
 
   /**
+   * Clean up cards whose target question elements are no longer in the DOM
+   */
+  cleanDetachedCards(): void {
+    for (const id of this.quizCards.keys()) {
+      const targetElement = document.querySelector(`[data-qorva-id="${id}"]`);
+      if (!targetElement || !document.body.contains(targetElement)) {
+        this.removeQuizCard(id);
+      }
+    }
+  }
+
+  /**
    * Show quota exhausted modal
    */
   showQuotaExhaustedModal(): void {

@@ -118,6 +118,9 @@ if (window.__QORVA_INITIALIZED__) {
      * Handle detected questions - with strict deduplication
      */
     private async handleQuestionsDetected(questions: DetectedQuestion[]): Promise<void> {
+      // Clean up overlay cards for question elements no longer in the DOM
+      overlayManager.cleanDetachedCards();
+
       for (const { id, element, question } of questions) {
         // STRICT CHECK: skip if already processed OR currently processing
         if (this.processedQuestions.has(id) || this.processingQuestions.has(id)) {

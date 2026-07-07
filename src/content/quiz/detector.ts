@@ -53,6 +53,7 @@ class QuizDetector {
       childList: true,
       subtree: true,
       attributes: true,
+      characterData: true,
       attributeFilter: ['class', 'data-question', 'hidden', 'style'],
     });
     
@@ -85,34 +86,47 @@ class QuizDetector {
    */
   private handleMutations(mutations: MutationRecord[]): void {
     let hasNewQuestions = false;
+    const containersToScan = new Set<HTMLElement>();
     
     for (const mutation of mutations) {
-      // SKIP mutations in overlay container (prevents infinite loop)
       const target = mutation.target as HTMLElement;
-      if (target.closest('#qorva-overlay-container') || 
+      
+      // SKIP mutations in overlay container (prevents infinite loop)
+      if (target.closest?.('#qorva-overlay-container') || 
           target.id === 'qorva-overlay-container') {
         continue;
       }
       
-      // Check added nodes
-      for (const node of mutation.addedNodes) {
-        if (node instanceof HTMLElement) {
-          // Skip overlay nodes
-          if (node.closest('#qorva-overlay-container')) continue;
-          
-          const questions = this.scanElement(node);
-          if (questions.length > 0) {
-            hasNewQuestions = true;
-          }
+      // Find the closest parent question container for any changes (childList, attributes, characterData)
+      const targetElement = target.nodeType === Node.ELEMENT_NODE ? target : target.parentElement;
+      if (targetElement) {
+        const containerSelector = QUIZ_SELECTORS.containers.join(', ');
+        const closestContainer = targetElement.closest<HTMLElement>(containerSelector);
+        if (closestContainer) {
+          containersToScan.add(closestContainer);
         }
       }
       
-      // Check if a question container was modified
-      if (mutation.type === 'attributes' && mutation.target instanceof HTMLElement) {
-        const questions = this.scanElement(mutation.target);
-        if (questions.length > 0) {
-          hasNewQuestions = true;
+      // Also check newly added HTML elements specifically
+      if (mutation.type === 'childList') {
+        for (const node of mutation.addedNodes) {
+          if (node instanceof HTMLElement) {
+            if (node.closest('#qorva-overlay-container')) continue;
+            
+            const questions = this.scanElement(node);
+            if (questions.length > 0) {
+              hasNewQuestions = true;
+            }
+          }
         }
+      }
+    }
+    
+    // Scan all unique containers identified by in-place mutation updates
+    for (const container of containersToScan) {
+      const questions = this.scanElement(container);
+      if (questions.length > 0) {
+        hasNewQuestions = true;
       }
     }
     
