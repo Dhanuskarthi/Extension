@@ -11,15 +11,21 @@ import type { QuizQuestion } from '../../shared/types';
  * Parse a question container element into QuizQuestion
  */
 export function parseQuestion(container: HTMLElement): QuizQuestion | null {
+  console.log(`[QORVA] parseQuestion: Scanning container <${container.tagName.toLowerCase()}> class="${container.className}" id="${container.id}"`);
+  
   // Extract question text
   const questionText = extractQuestionText(container);
+  console.log(`[QORVA] parseQuestion: Extracted text (len=${questionText?.length || 0}): "${questionText}"`);
   if (!questionText || questionText.length < 5) {
+    console.log('[QORVA] parseQuestion: Text too short or empty, skipping');
     return null;
   }
   
   // Extract choices
   const choices = extractChoices(container);
+  console.log(`[QORVA] parseQuestion: Extracted choices (${choices.length}):`, choices);
   if (choices.length < 2) {
+    console.log('[QORVA] parseQuestion: Less than 2 choices found, skipping');
     return null;
   }
   
@@ -156,20 +162,35 @@ function extractChoices(container: HTMLElement): string[] {
   // Find all potential choice elements
   const choiceSelector = QUIZ_SELECTORS.choices.join(', ');
   const elements = container.querySelectorAll<HTMLElement>(choiceSelector);
+  console.log(`[QORVA] extractChoices: Found ${elements.length} elements matching choices selector inside container`);
   
   for (const element of elements) {
     // Skip if it's a question text element
-    if (isQuestionTextElement(element)) continue;
+    if (isQuestionTextElement(element)) {
+      console.log('[QORVA] extractChoices: Sibling matches question text selector, skipping');
+      continue;
+    }
     
     // Get choice text
     const text = extractChoiceText(element);
     const normalized = normalizeText(text);
+    console.log(`[QORVA] extractChoices: Candidate element <${element.tagName.toLowerCase()}> class="${element.className}" -> text: "${text}"`);
     
     // Skip empty or duplicates
-    if (!text || text.length < 1 || seen.has(normalized)) continue;
+    if (!text || text.length < 1) {
+      console.log('[QORVA] extractChoices: Candidate is empty, skipping');
+      continue;
+    }
+    if (seen.has(normalized)) {
+      console.log('[QORVA] extractChoices: Candidate is duplicate, skipping');
+      continue;
+    }
     
     // Skip if text is too long (probably not a choice)
-    if (text.length > 500) continue;
+    if (text.length > 500) {
+      console.log('[QORVA] extractChoices: Candidate text too long (>500), skipping');
+      continue;
+    }
     
     seen.add(normalized);
     choices.push(text.trim());
@@ -177,7 +198,10 @@ function extractChoices(container: HTMLElement): string[] {
   
   // If no choices found, try finding inputs and their labels
   if (choices.length < 2) {
-    return extractChoicesFromInputs(container);
+    console.log('[QORVA] extractChoices: Found <2 choices, falling back to input scan');
+    const inputChoices = extractChoicesFromInputs(container);
+    console.log('[QORVA] extractChoices: Input scan returned choices:', inputChoices);
+    return inputChoices;
   }
   
   return choices;
