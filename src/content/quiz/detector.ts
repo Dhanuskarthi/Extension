@@ -144,8 +144,10 @@ class QuizDetector {
    * Scan entire DOM for questions
    */
   private scanDOM(): void {
+    console.log('[QORVA] scanDOM: Starting DOM scan...');
     const containerSelector = QUIZ_SELECTORS.containers.join(', ');
     const containers = document.querySelectorAll<HTMLElement>(containerSelector);
+    console.log(`[QORVA] scanDOM: Found ${containers.length} potential container element matches`);
     
     let foundNew = false;
     
@@ -158,8 +160,10 @@ class QuizDetector {
     
     // Also try scanning from body if no containers found
     if (this.detectedQuestions.size === 0) {
+      console.log('[QORVA] scanDOM: No explicit containers found, scanning from body fallback');
       this.scanForQuestions(document.body);
     }
+    console.log(`[QORVA] scanDOM: Total detected questions in cache: ${this.detectedQuestions.size}`);
     
     if (foundNew && this.callback) {
       // Only pass questions that haven't been reported yet

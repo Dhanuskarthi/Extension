@@ -111,6 +111,7 @@ if (window.__QORVA_INITIALIZED__) {
     }
 
     private startQuizDetection(): void {
+      console.log('[QORVA] Starting quiz detection...');
       quizDetector.start(this.handleQuestionsDetected.bind(this));
     }
 
@@ -118,19 +119,21 @@ if (window.__QORVA_INITIALIZED__) {
      * Handle detected questions - with strict deduplication
      */
     private async handleQuestionsDetected(questions: DetectedQuestion[]): Promise<void> {
+      console.log(`[QORVA] handleQuestionsDetected: Received ${questions.length} questions`);
       // Clean up overlay cards for question elements no longer in the DOM
       overlayManager.cleanDetachedCards();
 
       for (const { id, element, question } of questions) {
         // STRICT CHECK: skip if already processed OR currently processing
         if (this.processedQuestions.has(id) || this.processingQuestions.has(id)) {
+          console.log(`[QORVA] Question ${id} already processed or processing, skipping`);
           continue;
         }
         
         // Mark as currently processing (sync, before any async)
         this.processingQuestions.add(id);
         
-        console.log(`[QORVA] Processing question: ${id}`);
+        console.log(`[QORVA] Processing question: ${id}`, question.text.substring(0, 60));
         
         // Show loading overlay
         overlayManager.showQuizCard(id, {
@@ -181,6 +184,7 @@ if (window.__QORVA_INITIALIZED__) {
             };
           }
           
+          console.log(`[QORVA] Sending LLM_ANSWER_QUIZ message for: ${id}`);
           const response = await chrome.runtime.sendMessage({
             type: MSG_TYPES.LLM_ANSWER_QUIZ,
             payload: questionWithContext,
@@ -191,6 +195,7 @@ if (window.__QORVA_INITIALIZED__) {
           
           if (response?.ok && response.data) {
             const answer = response.data as QuizAnswer;
+            console.log(`[QORVA] Answer received for ${id}:`, answer);
             
             overlayManager.showQuizCard(id, {
               question,
@@ -202,6 +207,7 @@ if (window.__QORVA_INITIALIZED__) {
             const isPro = true;
             
             if (this.config?.quiz.auto && isPro) {
+              console.log(`[QORVA] Auto-selecting choice for ${id}`);
               const result = await selectAnswer(element, answer, this.config.quiz);
               
               if (!result.success) {
@@ -217,12 +223,14 @@ if (window.__QORVA_INITIALIZED__) {
             
             // PRO Feature: Auto-submit
             if (this.config?.quiz.autoSubmit && isPro && areAllQuestionsAnswered()) {
+              console.log('[QORVA] Auto-submitting quiz');
               const submitResult = await submitQuiz();
               if (submitResult.success) {
                 overlayManager.showToast('Quiz submitted!');
               }
             }
           } else {
+            console.error(`[QORVA] LLM_ANSWER_QUIZ failed for ${id}:`, response?.error);
             overlayManager.showQuizCard(id, {
               question,
               answer: { answer_index: 0, explanation: '' },
@@ -233,6 +241,7 @@ if (window.__QORVA_INITIALIZED__) {
         } catch (error) {
           // Mark as processed even on error
           this.processedQuestions.add(id);
+          console.error(`[QORVA] Error processing ${id}:`, error);
           
           overlayManager.showQuizCard(id, {
             question,
@@ -408,10 +417,17 @@ if (window.__QORVA_INITIALIZED__) {
   // Initialize
   const qorva = new QorvaContentScript();
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => qorva.init());
-  } else {
-    qorva.init();
+  try {
+    console.log('[QORVA] Content script executing loading checks...');
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        qorva.init().catch(err => console.error('[QORVA] Error during DOMContentLoaded init:', err));
+      });
+    } else {
+      qorva.init().catch(err => console.error('[QORVA] Error during instant init:', err));
+    }
+  } catch (e) {
+    console.error('[QORVA] Synchronous parser/execution error:', e);
   }
 
   window.addEventListener('beforeunload', () => qorva.destroy());
